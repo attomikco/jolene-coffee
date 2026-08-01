@@ -1,0 +1,409 @@
+{%- comment -%}
+  ============================================================
+  jc-bundle.liquid — Build Your Bundle
+  ============================================================
+  Ported from the Reset Wellness rw-armakit builder.
+
+  KEY DIFFERENCE FROM rw-armakit:
+  That builder used `p.variants | first` as the unit, which assumed
+  every product in the collection was a Bundle x1/x2/x3 ladder.
+  Jolene's products have no uniform shape — first variant is 4 cans
+  on Black/White, 12 on Blue/Red/Gold, 8 on Mix Pack.
+
+  This targets the variant whose pack size equals `pack_size`
+  (default 12) by matching the leading integer of the variant title
+  ("12 Cans" -> 12). Products with no matching variant are SKIPPED,
+  not silently rendered with the wrong variant. That keeps every
+  possible build a multiple of 12, which the co-packer requires for
+  Blue / Red / Gold.
+
+  DEPENDS ON AN AUTOMATIC DISCOUNT EXISTING IN ADMIN.
+  The saving shown here is computed client-side; Shopify applies
+  nothing on its own. One automatic discount per tier, "minimum
+  quantity of items", scoped to the builder collection, percentages
+  matching tier*_pct exactly. Without them this page promises a
+  saving that checkout will not honour. Do not publish without it.
+
+  Note: qty counts UNITS (packs), not distinct products. Three packs
+  of Black hits the 3+ tier exactly as three different flavors do.
+  Shopify's "minimum quantity of items" counts units the same way,
+  so an automatic discount agrees.
+{%- endcomment -%}
+
+{%- liquid
+  assign coll = collections[section.settings.collection]
+  assign pack_size = section.settings.pack_size | plus: 0
+  assign ship_threshold = section.settings.free_shipping_threshold | times: 100
+
+  assign t1q = section.settings.tier1_qty | plus: 0
+  assign t1p = section.settings.tier1_pct | plus: 0
+  assign t2q = section.settings.tier2_qty | plus: 0
+  assign t2p = section.settings.tier2_pct | plus: 0
+  assign t3q = section.settings.tier3_qty | plus: 0
+  assign t3p = section.settings.tier3_pct | plus: 0
+
+  assign max_tier = 0
+  if t1q > 0 and t1q > max_tier
+    assign max_tier = t1q
+  endif
+  if t2q > 0 and t2q > max_tier
+    assign max_tier = t2q
+  endif
+  if t3q > 0 and t3q > max_tier
+    assign max_tier = t3q
+  endif
+-%}
+
+{%- capture tiers_json -%}
+[
+{%- if t1q > 0 -%}{"qty":{{ t1q }},"pct":{{ t1p }}}{%- endif -%}
+{%- if t2q > 0 -%}{% if t1q > 0 %},{% endif %}{"qty":{{ t2q }},"pct":{{ t2p }}}{%- endif -%}
+{%- if t3q > 0 -%}{% if t1q > 0 or t2q > 0 %},{% endif %}{"qty":{{ t3q }},"pct":{{ t3p }}}{%- endif -%}
+]
+{%- endcapture -%}
+
+<div
+  class="jc-bundle {{ section.settings.color_scheme }}"
+  id="jc-bundle-{{ section.id }}"
+  data-tiers="{{ tiers_json | strip_newlines | escape }}"
+  data-maxtier="{{ max_tier }}"
+  data-ship="{{ ship_threshold }}"
+  data-packsize="{{ pack_size }}"
+  style="padding-top:{{ section.settings.spacing_top }}px;padding-bottom:{{ section.settings.spacing_bottom }}px;"
+>
+  <div class="{{ settings.x_margin }}">
+
+    {%- if section.settings.heading != blank -%}
+      <h2 class="jc-bundle__head type__heading">{{ section.settings.heading }}</h2>
+    {%- endif -%}
+    {%- if section.settings.lead != blank -%}
+      <div class="jc-bundle__lead">{{ section.settings.lead }}</div>
+    {%- endif -%}
+
+    {%- if max_tier > 0 -%}
+      <ul class="jc-bundle__tiers">
+        {%- if t1q > 0 -%}
+          <li class="jc-bundle__tier" data-tierqty="{{ t1q }}">
+            <span class="jc-bundle__tier-qty">{{ t1q }}+</span>
+            <span class="jc-bundle__tier-pct">{{ t1p }}% off</span>
+          </li>
+        {%- endif -%}
+        {%- if t2q > 0 -%}
+          <li class="jc-bundle__tier" data-tierqty="{{ t2q }}">
+            <span class="jc-bundle__tier-qty">{{ t2q }}+</span>
+            <span class="jc-bundle__tier-pct">{{ t2p }}% off</span>
+          </li>
+        {%- endif -%}
+        {%- if t3q > 0 -%}
+          <li class="jc-bundle__tier" data-tierqty="{{ t3q }}">
+            <span class="jc-bundle__tier-qty">{{ t3q }}+</span>
+            <span class="jc-bundle__tier-pct">{{ t3p }}% off</span>
+          </li>
+        {%- endif -%}
+      </ul>
+    {%- endif -%}
+
+    {%- if coll == blank or coll.products_count == 0 -%}
+      <p class="jc-bundle__empty">
+        Pick a collection for this section in the theme editor.
+      </p>
+    {%- else -%}
+
+      <div class="jc-bundle__grid">
+        {%- assign rendered = 0 -%}
+        {%- for p in coll.products -%}
+
+          {%- liquid
+            # Find the variant matching pack_size by its leading integer.
+            assign pv = nil
+            for v in p.variants
+              assign v_size = v.title | split: ' ' | first | plus: 0
+              if v_size == pack_size and v.available
+                assign pv = v
+                break
+              endif
+            endfor
+          -%}
+
+          {%- if pv -%}
+            {%- assign rendered = rendered | plus: 1 -%}
+
+            {%- liquid
+              assign accent = p.metafields.custom.accent | downcase
+              if accent == blank
+                assign t = p.title | downcase
+                if t contains 'black'
+                  assign accent = 'black'
+                elsif t contains 'white'
+                  assign accent = 'white'
+                elsif t contains 'blue'
+                  assign accent = 'blue'
+                elsif t contains 'red'
+                  assign accent = 'red'
+                elsif t contains 'gold'
+                  assign accent = 'gold'
+                endif
+              endif
+              assign unit_cents = pv.price | divided_by: pack_size
+            -%}
+
+            <div
+              class="jc-bundle__card{% if accent != blank %} jc-accent--{{ accent }}{% endif %}"
+              data-vid="{{ pv.id }}"
+              data-price="{{ pv.price }}"
+              data-title="{{ p.title | escape }}"
+            >
+              <div class="jc-bundle__thumb">
+                {%- if p.featured_image -%}
+                  {{ p.featured_image | image_url: width: 400 | image_tag:
+                     loading: 'lazy', alt: p.featured_image.alt | default: p.title }}
+                {%- endif -%}
+              </div>
+
+              <div class="jc-bundle__body">
+                <p class="jc-bundle__name">{{ p.title }}</p>
+                <p class="jc-bundle__price">
+                  {{ pv.price | money }}
+                  <span class="jc-bundle__unit">{{ unit_cents | money }}/can</span>
+                </p>
+              </div>
+
+              <div class="jc-bundle__pick">
+                <button type="button" class="jc-bundle__step" data-step="-1" aria-label="Remove one {{ p.title | escape }}">&minus;</button>
+                <span class="jc-bundle__count" data-count>0</span>
+                <button type="button" class="jc-bundle__step" data-step="1" aria-label="Add one {{ p.title | escape }}">+</button>
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+
+      {%- if rendered == 0 -%}
+        <p class="jc-bundle__empty">
+          No product in this collection has a {{ pack_size }}-can option.
+        </p>
+      {%- endif -%}
+
+      <div class="jc-bundle__bar" data-bar hidden>
+        <div class="jc-bundle__bar-inner">
+          <div class="jc-bundle__bar-left">
+            <p class="jc-bundle__bar-count" data-barcount>0 packs</p>
+            <p class="jc-bundle__bar-note" data-barnote></p>
+          </div>
+          <div class="jc-bundle__bar-right">
+            <div class="jc-bundle__bar-prices">
+              <span class="jc-bundle__bar-was" data-barwas hidden></span>
+              <span class="jc-bundle__bar-now" data-barnow></span>
+            </div>
+            <button type="button" class="jc-bundle__cta btn" data-submit disabled>
+              {{ section.settings.cta_label | default: 'Add bundle to cart' }}
+            </button>
+          </div>
+        </div>
+        <div class="jc-bundle__progress"><div class="jc-bundle__progress-fill" data-fill></div></div>
+      </div>
+
+    {%- endif -%}
+  </div>
+</div>
+
+<script>
+  (function () {
+    var root = document.getElementById('jc-bundle-{{ section.id }}');
+    if (!root) return;
+
+    var tiers    = JSON.parse(root.dataset.tiers || '[]');
+    var maxTier  = parseInt(root.dataset.maxtier, 10) || 0;
+    var shipCent = parseInt(root.dataset.ship, 10) || 0;
+    var packSize = parseInt(root.dataset.packsize, 10) || 12;
+
+    var cards  = Array.prototype.slice.call(root.querySelectorAll('.jc-bundle__card'));
+    var bar    = root.querySelector('[data-bar]');
+    var submit = root.querySelector('[data-submit]');
+    var state  = {};
+
+    function money(c) { return '$' + (c / 100).toFixed(2); }
+
+    function pctFor(qty) {
+      var pct = 0;
+      for (var i = 0; i < tiers.length; i++) {
+        if (tiers[i].qty > 0 && qty >= tiers[i].qty && tiers[i].pct > pct) pct = tiers[i].pct;
+      }
+      return pct;
+    }
+
+    function nextTier(qty) {
+      var best = null;
+      for (var i = 0; i < tiers.length; i++) {
+        if (tiers[i].qty > 0 && qty < tiers[i].qty) {
+          if (!best || tiers[i].qty < best.qty) best = tiers[i];
+        }
+      }
+      return best;
+    }
+
+    function render() {
+      var qty = 0, gross = 0;
+
+      cards.forEach(function (card) {
+        var vid = card.dataset.vid;
+        var n = state[vid] || 0;
+        card.querySelector('[data-count]').textContent = n;
+        card.classList.toggle('is-picked', n > 0);
+        qty += n;
+        gross += n * parseInt(card.dataset.price, 10);
+      });
+
+      var pct  = pctFor(qty);
+      var save = Math.round(gross * pct / 100);
+      var net  = gross - save;
+
+      root.querySelectorAll('.jc-bundle__tier').forEach(function (el) {
+        el.classList.toggle('is-reached', qty >= parseInt(el.dataset.tierqty, 10));
+      });
+
+      bar.hidden = qty === 0;
+      submit.disabled = qty === 0;
+
+      root.querySelector('[data-barcount]').textContent =
+        qty + (qty === 1 ? ' pack' : ' packs') + ' · ' + (qty * packSize) + ' cans';
+
+      var was = root.querySelector('[data-barwas]');
+      was.hidden = save === 0;
+      was.textContent = money(gross);
+      root.querySelector('[data-barnow]').textContent = money(net);
+
+      var note = '';
+      var nt = nextTier(qty);
+      if (nt) {
+        var need = nt.qty - qty;
+        note = 'Add ' + need + (need === 1 ? ' more pack' : ' more packs') + ' for ' + nt.pct + '% off';
+      } else if (pct > 0) {
+        note = "You're saving " + pct + '%';
+      }
+      if (shipCent > 0 && net > 0 && net < shipCent) {
+        note += (note ? ' · ' : '') + money(shipCent - net) + ' to free shipping';
+      } else if (shipCent > 0 && net >= shipCent) {
+        note += (note ? ' · ' : '') + 'Ships free';
+      }
+      root.querySelector('[data-barnote]').textContent = note;
+
+      var fill = maxTier > 0 ? Math.min(100, (qty / maxTier) * 100) : 0;
+      root.querySelector('[data-fill]').style.width = fill + '%';
+    }
+
+    cards.forEach(function (card) {
+      card.querySelectorAll('[data-step]').forEach(function (btn) {
+        btn.addEventListener('click', function () {
+          var vid = card.dataset.vid;
+          var delta = parseInt(btn.dataset.step, 10);
+          state[vid] = Math.max(0, (state[vid] || 0) + delta);
+          if (state[vid] === 0) delete state[vid];
+          render();
+        });
+      });
+    });
+
+    submit.addEventListener('click', function () {
+      var items = [];
+      // One id per submit so a discount function can tell one 6-pack
+      // build from two 3-pack builds. Leading underscore keeps it out
+      // of the customer-facing cart line.
+      var bundleId = 'b' + Date.now().toString(36);
+
+      Object.keys(state).forEach(function (vid) {
+        items.push({
+          id: parseInt(vid, 10),
+          quantity: state[vid],
+          properties: { _jc_bundle: bundleId }
+        });
+      });
+      if (!items.length) return;
+
+      submit.disabled = true;
+      fetch('/cart/add.js', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+        body: JSON.stringify({ items: items })
+      })
+        .then(function (r) {
+          if (!r.ok) throw new Error('cart/add failed: ' + r.status);
+          return r.json();
+        })
+        .then(function () {
+          state = {};
+          render();
+          try {
+            Alpine.$data(document.documentElement).updateCart(true);
+          } catch (e) {
+            window.location.href = '/cart';
+          }
+        })
+        .catch(function (e) {
+          console.error('[jc-bundle]', e);
+          submit.disabled = false;
+        });
+    });
+
+    render();
+  })();
+</script>
+
+{% schema %}
+{
+  "name": "Build Your Bundle",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "collection",
+      "id": "collection",
+      "label": "Collection",
+      "info": "Only products with a matching pack-size variant are shown."
+    },
+    {
+      "type": "number",
+      "id": "pack_size",
+      "label": "Pack size (cans per unit)",
+      "default": 12,
+      "info": "Matches the variant whose title starts with this number, e.g. '12 Cans'. Keep at 12 — Blue, Red and Gold can only be sold in multiples of 12."
+    },
+    { "type": "text", "id": "heading", "label": "Heading", "default": "Build Your Bundle" },
+    { "type": "richtext", "id": "lead", "label": "Intro" },
+    { "type": "text", "id": "cta_label", "label": "Button label", "default": "Add bundle to cart" },
+    { "type": "header", "content": "Discount tiers" },
+    {
+      "type": "paragraph",
+      "content": "These percentages are display only. A matching automatic discount must exist in Discounts → Automatic, using 'minimum quantity of items', scoped to this collection. Without it the saving shown here is not applied at checkout."
+    },
+    { "type": "range", "id": "tier1_qty", "label": "Tier 1 — packs", "min": 0, "max": 12, "step": 1, "default": 3 },
+    { "type": "range", "id": "tier1_pct", "label": "Tier 1 — % off", "min": 0, "max": 50, "step": 1, "default": 10 },
+    { "type": "range", "id": "tier2_qty", "label": "Tier 2 — packs", "min": 0, "max": 12, "step": 1, "default": 4 },
+    { "type": "range", "id": "tier2_pct", "label": "Tier 2 — % off", "min": 0, "max": 50, "step": 1, "default": 15 },
+    { "type": "range", "id": "tier3_qty", "label": "Tier 3 — packs (0 = off)", "min": 0, "max": 12, "step": 1, "default": 0 },
+    { "type": "range", "id": "tier3_pct", "label": "Tier 3 — % off", "min": 0, "max": 50, "step": 1, "default": 0 },
+    { "type": "header", "content": "Shipping" },
+    {
+      "type": "number",
+      "id": "free_shipping_threshold",
+      "label": "Free shipping threshold ($)",
+      "default": 60,
+      "info": "Keep in sync with Theme settings → Product → Shipping, the cart progress bar and the announcement bar."
+    },
+    { "type": "header", "content": "Layout" },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "Color scheme",
+      "default": "color__bg-body color__text",
+      "options": [
+        { "value": "color__bg-body color__text", "label": "Body" },
+        { "value": "color__bg-shade-1 color__text", "label": "Shade 1" },
+        { "value": "color__bg-primary color__primary", "label": "Primary" }
+      ]
+    },
+    { "type": "range", "id": "spacing_top", "label": "Spacing top", "min": 0, "max": 150, "step": 10, "unit": "px", "default": 60 },
+    { "type": "range", "id": "spacing_bottom", "label": "Spacing bottom", "min": 0, "max": 150, "step": 10, "unit": "px", "default": 60 }
+  ],
+  "presets": [{ "name": "Build Your Bundle" }]
+}
+{% endschema %}

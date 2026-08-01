@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "jc_bundle_main": {
+      "type": "jc-bundle",
+      "settings": {
+        "collection": "build-your-bundle",
+        "pack_size": 12,
+        "heading": "Build Your Bundle",
+        "lead": "<p>Pick your flavors, twelve cans at a time. Mix three packs and save 10%, four or more and save 15%. Everything ships free over $60.</p>",
+        "cta_label": "Add bundle to cart",
+        "tier1_qty": 3,
+        "tier1_pct": 10,
+        "tier2_qty": 4,
+        "tier2_pct": 15,
+        "tier3_qty": 0,
+        "tier3_pct": 0,
+        "free_shipping_threshold": 60,
+        "color_scheme": "color__bg-body color__text",
+        "spacing_top": 60,
+        "spacing_bottom": 60
+      }
+    }
+  },
+  "order": ["jc_bundle_main"]
+}
