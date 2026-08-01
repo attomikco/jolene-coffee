@@ -1844,6 +1844,17 @@
         "step": 1,
         "label": "t:schema.product.settings.option_grid.label",
         "default": 3
+      },
+      {
+        "type": "header",
+        "content": "Shipping"
+      },
+      {
+        "type": "text",
+        "id": "pdp_free_shipping_threshold",
+        "label": "Free shipping threshold ($)",
+        "info": "Single source of truth for the 'Ships Free' badge on product pages. Keep this in sync with the cart progress bar and the announcement bar.",
+        "default": "60"
       }
     ]
   },

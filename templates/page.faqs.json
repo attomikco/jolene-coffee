@@ -55,7 +55,7 @@
           "type": "content",
           "settings": {
             "icon": "",
-            "content": "<p>Yes, we offer free shipping on all orders over $50. Orders under $50 have a standard shipping fee of $6.99.</p>",
+            "content": "<p>Yes \u2014 free shipping on all orders $60 and up. Under $60, shipping is calculated by weight and runs $5.00\u2013$7.50.</p>",
             "heading": "Do you offer free shipping?",
             "enable_open": true,
             "color_scheme": "btn"
@@ -65,7 +65,7 @@
           "type": "content",
           "settings": {
             "icon": "",
-            "content": "<p>Standard ground shipping takes 3-7 business days. We'll send you tracking information as soon as your order ships so you can follow its progress.</p>",
+            "content": "<p>Standard shipping takes 3\u20134 business days. We'll send you tracking information as soon as your order ships so you can follow its progress.</p>",
             "heading": "How long does delivery take?",
             "enable_open": false,
             "color_scheme": "btn"
@@ -178,7 +178,7 @@
           "type": "content",
           "settings": {
             "icon": "",
-            "content": "<p>Each 8oz can delivers a bold caffeine kick comparable to a strong cup of coffee, designed to give you sustained energy without the crash. The exact amount varies slightly by batch but maintains consistent strength.</p>",
+            "content": "<p>Black (Cold Brew) has 236mg per 8 fl oz can. Our Oat Milk Lattes have 118mg. Both are built for sustained energy without the crash.</p>",
             "heading": "How much caffeine is in each can?",
             "enable_open": false,
             "color_scheme": "btn"

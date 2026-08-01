@@ -59,7 +59,37 @@
       </li>
     {% endif %}
 
-    {% if block.settings.value_prop_text != blank %}
+    {%- liquid
+      # Build the value-prop line from live variant pricing rather than hardcoding it.
+      # Matches the variant whose title starts with value_prop_pack_size (e.g. "24 Cans"),
+      # divides in cents so the per-unit figure always rounds down, and appends
+      # "Ships Free" only when that variant actually clears the shipping threshold.
+      assign vp_text = block.settings.value_prop_text
+      assign vp_size = block.settings.value_prop_pack_size | plus: 0
+
+      if vp_size > 0
+        assign vp_variant = nil
+        for v in product.variants
+          assign v_size = v.title | split: ' ' | first | plus: 0
+          if v_size == vp_size
+            assign vp_variant = v
+            break
+          endif
+        endfor
+
+        if vp_variant
+          assign vp_unit = vp_variant.price | divided_by: vp_size | money
+          assign vp_text = vp_size | append: ' cans, ' | append: vp_unit | append: ' each'
+
+          assign vp_threshold = settings.pdp_free_shipping_threshold | times: 100
+          if vp_threshold > 0 and vp_variant.price >= vp_threshold
+            assign vp_text = vp_text | append: ' + Ships Free'
+          endif
+        endif
+      endif
+    -%}
+
+    {% if vp_text != blank %}
       <li
         class="ac-checklist__value-prop {{ block.settings.badge_color_scheme }}"
         style="
@@ -70,7 +100,7 @@
         {% unless block.settings.value_prop_tag == blank %}
           <span class="ac-checklist__value-tag {{ block.settings.tag_color_scheme }}">{{ block.settings.value_prop_tag }}</span>
         {% endunless %}
-        <span class="ac-checklist__value-text">{{ block.settings.value_prop_text }}</span>
+        <span class="ac-checklist__value-text">{{ vp_text }}</span>
       </li>
     {% endif %}
   </ul>

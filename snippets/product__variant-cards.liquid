@@ -53,8 +53,13 @@
   endif
 
   # Free shipping threshold (convert dollars to cents for variant.price comparison).
+  # Single source of truth is the global theme setting so the PDP badge, the cart
+  # progress bar and the announcement bar can't drift apart. The block setting is
+  # kept only as a per-product override.
   assign fs_threshold_cents = 0
-  if block.settings.free_shipping_threshold != blank
+  if settings.pdp_free_shipping_threshold != blank
+    assign fs_threshold_cents = settings.pdp_free_shipping_threshold | times: 100
+  elsif block.settings.free_shipping_threshold != blank
     assign fs_threshold_cents = block.settings.free_shipping_threshold | times: 100
   endif
 

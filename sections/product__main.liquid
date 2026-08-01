@@ -5101,9 +5101,9 @@
         {
           "type": "text",
           "id": "free_shipping_threshold",
-          "label": "Free shipping threshold ($)",
-          "info": "Variants priced at or above this show 'Ships Free'. Leave blank to disable.",
-          "default": "50"
+          "label": "Free shipping threshold ($) — override",
+          "info": "Per-product override only. Normally leave blank so this inherits the global Theme settings value.",
+          "default": ""
         },
         {
           "type": "header",
@@ -5749,8 +5749,16 @@
         },
         {
           "type": "text",
+          "id": "value_prop_pack_size",
+          "label": "Pack size to feature",
+          "default": "24",
+          "info": "Per-can price is calculated live from this variant. Leave blank to use the static text below instead."
+        },
+        {
+          "type": "text",
           "id": "value_prop_text",
-          "label": "Value text"
+          "label": "Value text (fallback)",
+          "info": "Only used if no variant matches the pack size above."
         },
         {
           "type": "header",
