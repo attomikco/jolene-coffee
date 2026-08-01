@@ -1,0 +1,231 @@
+{
+  "order": [
+    "text_bgq73p",
+    "accordions_azJYgA",
+    "accordions_yp3Q4Q"
+  ],
+  "sections": {
+    "text_bgq73p": {
+      "type": "text",
+      "settings": {
+        "content": "<p>Everything you need to know about Jolene Coffee. Don't see your question? Email us and we'll get back to you quickly.</p>",
+        "heading": "You Asked, We Answered",
+        "button_url": "",
+        "color_text": "",
+        "visibility": "",
+        "spacing_top": 100,
+        "button_label": "",
+        "color_border": "color__border-divider-1",
+        "color_button": "btn btn--secondary",
+        "color_scheme": "color__bg-body",
+        "style_border": "",
+        "enable_margin": true,
+        "spacing_bottom": 50,
+        "color_background": "#ffffff",
+        "enable_color_fade": false,
+        "layout_x_alignment": "justify-center",
+        "layout_column_width": 80,
+        "style_text_alignment": "text-center"
+      }
+    },
+    "accordions_azJYgA": {
+      "type": "accordions",
+      "blocks": {
+        "content_4NEg6E": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Currently, we only ship within the United States. We're working on expanding international shipping options and will update customers when available.</p>",
+            "heading": "Do you ship internationally?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_9kXgM9": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>We offer a 30-day return policy on all unopened products. If you're not satisfied with your order, contact us for an easy return process and full refund.</p>",
+            "heading": "What's your return policy?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_LrUC8E": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Yes, we offer free shipping on all orders over $50. Orders under $50 have a standard shipping fee of $6.99.</p>",
+            "heading": "Do you offer free shipping?",
+            "enable_open": true,
+            "color_scheme": "btn"
+          }
+        },
+        "content_Qf8tbG": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Standard ground shipping takes 3-7 business days. We'll send you tracking information as soon as your order ships so you can follow its progress.</p>",
+            "heading": "How long does delivery take?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_faq_page_shipping_5": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>You'll receive a tracking number via email once your order ships. You can use this to track your package through our shipping partner's website for real-time updates.</p>",
+            "heading": "How can I track my order?",
+            "enable_open": true,
+            "color_scheme": "btn"
+          }
+        }
+      },
+      "settings": {
+        "content": "",
+        "heading": "Shipping & Orders",
+        "button_url": "",
+        "color_text": "",
+        "visibility": "",
+        "spacing_top": 100,
+        "button_label": "",
+        "color_border": "color__border-divider-1",
+        "color_button": "btn btn--secondary",
+        "color_scheme": "color__bg-body",
+        "enable_split": true,
+        "heading_font": "type__body type--base",
+        "style_border": "",
+        "enable_margin": true,
+        "spacing_bottom": 100,
+        "color_background": "#ffffff",
+        "enable_color_fade": false,
+        "layout_x_alignment": "justify-between",
+        "enable_split_heading": false
+      },
+      "block_order": [
+        "content_LrUC8E",
+        "content_Qf8tbG",
+        "content_4NEg6E",
+        "content_9kXgM9",
+        "content_faq_page_shipping_5"
+      ]
+    },
+    "accordions_yp3Q4Q": {
+      "type": "accordions",
+      "blocks": {
+        "content_77NVND": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Each can has a 12-month shelf life from the production date. Once opened, refrigerate and consume within 24 hours for optimal freshness and taste.</p>",
+            "heading": "What's the shelf life of Jolene Coffee?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_AUMRTD": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>We slow-brew whole coffee beans for 24 hours using only premium single-origin beans and filtered water. No concentrates, no shortcuts, no artificial flavors — just the way cold brew should be made for maximum flavor and smoothness.</p>",
+            "heading": "What makes your cold brew different from concentrate-based brands?",
+            "enable_open": true,
+            "color_scheme": "btn"
+          }
+        },
+        "content_ERMCGz": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Absolutely. Single-origin beans provide a cleaner, more distinct flavor profile that showcases the unique characteristics of the region. You'll taste the difference in smoothness and complexity compared to generic blends.</p>",
+            "heading": "Can I taste the difference between single-origin and blended beans?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_X4hUxB": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Our White blend is gluten-free, dairy-free, and Non-GMO. It's made with premium organic oat milk that adds creaminess without compromising dietary needs or taste.</p>",
+            "heading": "Is the Oat Milk Latte suitable for dietary restrictions?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_XPVEc6": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Yes, all our coffee beans are Fair Trade certified and Non-GMO. We believe great coffee should support the farmers and communities that make it possible, which is why we're committed to ethical sourcing practices.</p>",
+            "heading": "Are your ingredients ethically sourced?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_hew4er": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>For the best taste experience, we recommend serving chilled. Our cans are shelf-stable until opened, so you can store them at room temperature and chill when ready to drink.</p>",
+            "heading": "Do I need to refrigerate the cans before drinking?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_xBhFVz": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Each 8oz can delivers a bold caffeine kick comparable to a strong cup of coffee, designed to give you sustained energy without the crash. The exact amount varies slightly by batch but maintains consistent strength.</p>",
+            "heading": "How much caffeine is in each can?",
+            "enable_open": false,
+            "color_scheme": "btn"
+          }
+        },
+        "content_faq_page_product_8": {
+          "type": "content",
+          "settings": {
+            "icon": "",
+            "content": "<p>Anyone who appreciates premium coffee with authentic flavor. Our customers are music lovers, creatives, and culture-driven people who value craftsmanship and brands with real stories behind them.</p>",
+            "heading": "Who should drink Jolene Coffee?",
+            "enable_open": true,
+            "color_scheme": "btn"
+          }
+        }
+      },
+      "settings": {
+        "content": "",
+        "heading": "About the Coffee",
+        "button_url": "",
+        "color_text": "",
+        "visibility": "",
+        "spacing_top": 100,
+        "button_label": "",
+        "color_border": "color__border-divider-1",
+        "color_button": "btn btn--secondary",
+        "color_scheme": "color__bg-body",
+        "enable_split": true,
+        "heading_font": "type__body type--base",
+        "style_border": "",
+        "enable_margin": true,
+        "spacing_bottom": 50,
+        "color_background": "#ffffff",
+        "enable_color_fade": false,
+        "layout_x_alignment": "justify-between",
+        "enable_split_heading": false
+      },
+      "block_order": [
+        "content_AUMRTD",
+        "content_xBhFVz",
+        "content_XPVEc6",
+        "content_X4hUxB",
+        "content_hew4er",
+        "content_77NVND",
+        "content_ERMCGz",
+        "content_faq_page_product_8"
+      ]
+    }
+  }
+}

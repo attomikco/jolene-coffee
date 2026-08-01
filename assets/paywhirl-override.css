@@ -1,0 +1,99 @@
+/* =============================================================
+   PayWhirl override styles — Jolene Coffee
+   Upload this file to Assets as `paywhirl-override.css`, then add
+   to layout/theme.liquid before </head>:
+   {{ 'paywhirl-override.css' | asset_url | stylesheet_tag }}
+   ============================================================= */
+
+:root {
+  --jc-accent: #1D1D1E;       /* Jolene primary (selected card border, badge bg) */
+  --jc-accent-tint: #f2ece2;  /* warm wash for the selected card fill */
+  --jc-on-accent: #FAF6EF;    /* Jolene cream, used for badge text */
+}
+
+/* ── hide legacy warning ── */
+.paywhirl-plan-selector-old-snippet-warning {
+  display: none !important;
+}
+
+/* ── container reset ── */
+.paywhirl-plan-selector {
+  border: none !important;
+  padding: 0 !important;
+  margin: 0 !important;
+}
+
+/* ── "Purchase options" header ── */
+.paywhirl-plan-selector-header.paywhirl-label {
+  font-size: 16px !important;
+  color: #1D1D1E !important;
+  text-transform: none !important;
+  letter-spacing: 0 !important;
+  font-weight: 500 !important;
+  display: block !important;
+  margin-bottom: 14px !important;
+}
+
+/* ── remove border from group container ── */
+.paywhirl-plan-selector .paywhirl-plan-selector-group-container {
+  border: none !important;
+  padding: 0 !important;
+  border-radius: 0 !important;
+  margin-bottom: 0 !important;
+}
+
+/* ── each plan card ── */
+.paywhirl-plan-selector .paywhirl-plan-selector-group {
+  border: 1.5px solid #e0e0e0 !important;
+  border-radius: 12px !important;
+  padding: 14px 16px !important;
+  margin-bottom: 6px !important;
+  margin-top: 0 !important;
+  background: #ffffff !important;
+  cursor: pointer !important;
+  transition: border-color 0.15s ease !important;
+}
+
+.paywhirl-plan-selector .paywhirl-plan-selector-group:hover {
+  border-color: #aaa !important;
+}
+
+/* ── selected card ── */
+.paywhirl-plan-selector .paywhirl-plan-selector-group.paywhirl-group-selected {
+  border: 2px solid var(--jc-accent) !important;
+  background: var(--jc-accent-tint) !important;
+}
+
+/* ── one-time card: extra bottom room so the badge below it
+      never clips into this card ── */
+#paywhirl-one-time-purchase-group {
+  margin-top: 0 !important;
+  margin-bottom: 16px !important;
+}
+
+/* ── Save 10% floating badge on the subscribe card ── */
+.paywhirl-plan-selector-group:not(#paywhirl-one-time-purchase-group) {
+  position: relative !important;
+}
+
+.paywhirl-plan-selector-group:not(#paywhirl-one-time-purchase-group)::before {
+  content: "Save 10%" !important;
+  text-transform: uppercase !important;
+  position: absolute !important;
+  top: -11px !important;
+  left: 12px !important;
+  font-size: 11px !important;
+  font-weight: 700 !important;
+  background: var(--jc-accent) !important;
+  color: var(--jc-on-accent) !important;
+  padding: 2px 8px !important;
+  border-radius: 4px !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* ── compare-at (strikethrough) price on subscribe card ── */
+.paywhirl-compare-at-price {
+  font-size: 16px !important;
+  color: #333 !important;
+  opacity: 1 !important;
+}

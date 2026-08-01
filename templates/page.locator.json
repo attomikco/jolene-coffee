@@ -1,0 +1,30 @@
+{
+  "order": [
+    "text_Gprrmk"
+  ],
+  "sections": {
+    "text_Gprrmk": {
+      "type": "text",
+      "settings": {
+        "content": "<p>Available online and select retail partners. Check back regularly as we're always expanding to new locations and adding stockists near you.</p>",
+        "heading": "Find Jolene Coffee",
+        "button_url": "",
+        "color_text": "",
+        "visibility": "",
+        "spacing_top": 100,
+        "button_label": "",
+        "color_border": "color__border-divider-1",
+        "color_button": "btn btn--secondary",
+        "color_scheme": "color__bg-body",
+        "style_border": "",
+        "enable_margin": true,
+        "spacing_bottom": 50,
+        "color_background": "#ffffff",
+        "enable_color_fade": false,
+        "layout_x_alignment": "justify-center",
+        "layout_column_width": 80,
+        "style_text_alignment": "text-center"
+      }
+    }
+  }
+}

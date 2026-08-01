@@ -1,0 +1,116 @@
+<!-- snippets/product__variant-cards.liquid -->
+{% comment %}
+  Variant selector displayed as visual cards instead of pills.
+  Hooks into the theme's existing Alpine.js option system
+  (option1 / option2 / option3 globals + handleProductFormChange).
+
+  Renders ONE option's values as cards by default, OR all options if
+  `option_name` is left blank. Multi-option products show one card
+  grid per option, stacked vertically with a label per option.
+
+  Accepts:
+  - block: {object} The block object with settings.
+
+  Usage:
+    {% render 'product__variant-cards', block: block %}
+{% endcomment %}
+
+{%- liquid
+  # Hide entirely on single-variant products. The Add-to-Cart button
+  # still renders elsewhere on the PDP — only the cards section is
+  # suppressed when the product has a single "Default Title" variant.
+  assign should_render = true
+  if product.has_only_default_variant
+    assign should_render = false
+  endif
+  if product.options_with_values.size == 0
+    assign should_render = false
+  endif
+
+  # `option_name` is a SOFT OVERRIDE. When set AND matched, the snippet
+  # renders only that option (legacy single-option behavior, preserves
+  # brands already configured this way). When blank OR set to a name
+  # that doesn't exist on the product, fall through to rendering every
+  # option in product.options_with_values stacked vertically — the new
+  # default for multi-option products.
+  assign filter_option = block.settings.option_name | downcase | strip
+  assign single_match = nil
+  if filter_option != blank
+    for opt in product.options_with_values
+      assign opt_name_down = opt.name | downcase
+      if opt_name_down == filter_option
+        assign single_match = opt
+        break
+      endif
+    endfor
+  endif
+
+  # Parse per-value config metafield once for the whole snippet.
+  assign vc_config_raw = product.metafields.attomik.variant_cards.value
+  assign has_config = false
+  if vc_config_raw != blank
+    assign has_config = true
+  endif
+
+  # Free shipping threshold (convert dollars to cents for variant.price comparison).
+  assign fs_threshold_cents = 0
+  if block.settings.free_shipping_threshold != blank
+    assign fs_threshold_cents = block.settings.free_shipping_threshold | times: 100
+  endif
+
+  assign first_variant_price = product.variants.first.price
+-%}
+
+{% if should_render %}
+  <style>
+    @media (min-width: 769px) {
+      .ac-vc-grid--{{ section.id }} {
+        grid-template-columns: repeat({{ block.settings.desktop_columns | default: 4 }}, 1fr) !important;
+      }
+    }
+  </style>
+
+  <div
+    class="w-full px-4"
+    style="
+      padding-top:{{ block.settings.spacing_top }}px;
+      padding-bottom:{{ block.settings.spacing_bottom }}px;
+    "
+    {{ block.shopify_attributes }}
+  >
+    {% comment %}
+      Outer iteration: one card grid per product option. When `option_name`
+      is set, options_to_render is a single option object (rendered once).
+      When blank, it's the full product.options_with_values array.
+    {% endcomment %}
+    {% if single_match %}
+      {% comment %} Single-option soft-override path {% endcomment %}
+      {% render 'product__variant-cards-grid',
+        block: block,
+        section: section,
+        product: product,
+        card_option: single_match,
+        is_first_option: true,
+        has_config: has_config,
+        vc_config_raw: vc_config_raw,
+        fs_threshold_cents: fs_threshold_cents,
+        first_variant_price: first_variant_price
+      %}
+    {% else %}
+      {% comment %} Multi-option default path: render each option's grid in order {% endcomment %}
+      {% for current_option in product.options_with_values %}
+        {% render 'product__variant-cards-grid',
+          block: block,
+          section: section,
+          product: product,
+          card_option: current_option,
+          is_first_option: forloop.first,
+          has_config: has_config,
+          vc_config_raw: vc_config_raw,
+          fs_threshold_cents: fs_threshold_cents,
+          first_variant_price: first_variant_price
+        %}
+      {% endfor %}
+    {% endif %}
+  </div>
+{% endif %}

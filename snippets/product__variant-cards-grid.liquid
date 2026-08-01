@@ -1,0 +1,370 @@
+<!-- snippets/product__variant-cards-grid.liquid -->
+{% comment %}
+  Inner sub-snippet: renders ONE option's value list as a card grid.
+  Called by product__variant-cards.liquid once per option (or once
+  total for the single-option soft-override path).
+
+  Accepts:
+  - block: {object}
+  - section: {object}
+  - product: {object}
+  - card_option: {object} The option (one entry from product.options_with_values)
+  - is_first_option: {boolean} True only for the first rendered option;
+      controls whether x-init's "popular" pre-selection runs (we only
+      want the auto-pop on the first option, not every option).
+  - has_config: {boolean} Whether vc_config_raw is non-blank.
+  - vc_config_raw: {array} The parsed per-value metafield array.
+  - fs_threshold_cents: {number}
+  - first_variant_price: {number}
+{% endcomment %}
+
+{%- liquid
+  assign card_option_position = card_option.position
+  assign option_index = card_option_position | minus: 1
+
+  assign variant_count = card_option.values | size
+  assign popular_index = variant_count | minus: 1 | divided_by: 2
+  assign last_index = variant_count | minus: 1
+
+  assign popular_value = card_option.values[popular_index]
+  assign popular_encoded = popular_value | replace: ' ', '+' | base64_encode
+
+  assign popular_variant = nil
+  for v in product.variants
+    assign v_opt_encoded = v.options[option_index] | replace: ' ', '+' | base64_encode
+    if v_opt_encoded == popular_encoded
+      assign popular_variant = v
+      break
+    endif
+  endfor
+-%}
+
+{% comment %} Option label — sits above this option's card grid {% endcomment %}
+<div class="mb-3 mt-6 flex justify-between">
+  <label class="type--small font-bold">
+    {{ card_option.name }}
+    {% for value in card_option.values %}
+      <span
+        class="font-normal"
+        :class="{
+          'inline': option{{ card_option_position }} == `{{ value | replace: ' ', '+' | base64_encode }}`,
+          'hidden': option{{ card_option_position }} != `{{ value | replace: ' ', '+' | base64_encode }}`
+        }"
+        x-cloak
+      >: {{ value -}}</span>
+    {% endfor %}
+  </label>
+</div>
+
+<div
+  class="ac-vc-grid ac-vc-grid--{{ section.id }}"
+  style="align-items:stretch;"
+  {% if is_first_option and popular_variant and variant_count > 2 %}
+    x-init="
+      $nextTick(() => {
+        option{{ card_option_position }} = `{{ popular_encoded }}`;
+        handleProductFormChange(null, '{{ section.id }}', '{{ product.handle | handle }}', '{{ card_option_position }}', '{{ popular_value.id }}');
+      });
+    "
+  {% endif %}
+>
+  {% for value in card_option.values %}
+    {%- liquid
+      assign value_encoded = value | replace: ' ', '+' | base64_encode
+
+      # Find a representative variant for THIS card. Same single-option
+      # approximation themes like Dawn/Sense use: the first variant whose
+      # Nth option matches THIS value. The actual cart variant gets
+      # resolved by handleProductFormChange on click which combines
+      # option1+option2+option3.
+      assign card_variant = nil
+      for v in product.variants
+        assign v_opt_encoded = v.options[option_index] | replace: ' ', '+' | base64_encode
+        if v_opt_encoded == value_encoded
+          assign card_variant = v
+          break
+        endif
+      endfor
+
+      assign option_available = false
+      for v in product.variants
+        if v.available
+          assign v_opt_encoded = v.options[option_index] | replace: ' ', '+' | base64_encode
+          if v_opt_encoded == value_encoded
+            assign option_available = true
+            break
+          endif
+        endif
+      endfor
+
+      assign val_config = nil
+      if has_config
+        assign val_str = value | strip
+        for cfg in vc_config_raw
+          if cfg.value == val_str
+            assign val_config = cfg
+            break
+          endif
+        endfor
+        if val_config == nil
+          assign val_handle = value | handleize
+          for cfg in vc_config_raw
+            assign cfg_handle = cfg.value | handleize
+            if cfg_handle == val_handle
+              assign val_config = cfg
+              break
+            endif
+          endfor
+        endif
+      endif
+
+      # === FREE SHIPPING TRIGGER ===
+      assign show_free_shipping = false
+      if val_config and val_config.show_free_shipping == true
+        assign show_free_shipping = true
+      elsif fs_threshold_cents > 0 and card_variant
+        if card_variant.price >= fs_threshold_cents
+          assign show_free_shipping = true
+        endif
+      endif
+
+      # === BADGE ===
+      # Precedence (highest to lowest):
+      #   1. Ships Free triggered → ships_free_color_scheme
+      #   2. Per-product metafield (val_config.badge):
+      #        - badge_color == 'secondary' → popular_color_scheme
+      #        - else → best_value_color_scheme
+      #   3. Auto-heuristic by position:
+      #        - middle index, not first/last → "Popular" + popular_color_scheme
+      #        - last index, count > 1 → "Best Value" + best_value_color_scheme
+      assign badge_text = ''
+      assign badge_scheme = ''
+      if option_available and show_free_shipping
+        assign badge_text = 'Ships Free'
+        assign badge_scheme = block.settings.ships_free_color_scheme
+      elsif val_config and val_config.badge != blank
+        assign badge_text = val_config.badge
+        if val_config.badge_color == 'secondary'
+          assign badge_scheme = block.settings.popular_color_scheme
+        else
+          assign badge_scheme = block.settings.best_value_color_scheme
+        endif
+      elsif option_available
+        if forloop.index0 == popular_index and forloop.index0 != 0 and forloop.index0 != last_index
+          assign badge_text = 'Popular'
+          assign badge_scheme = block.settings.popular_color_scheme
+        elsif forloop.index0 == last_index and variant_count > 1
+          assign badge_text = 'Best Value'
+          assign badge_scheme = block.settings.best_value_color_scheme
+        endif
+      endif
+
+      # The theme's color scheme classes (color__bg-X / color__X) are also
+      # applied to the parent card via Alpine :class. The card's classes
+      # have a descendant rule (.color__primary *, .color__tertiary *) that
+      # propagates `color` (text color) to ALL descendants — including this
+      # badge. That descendant rule ties the badge's own color class on
+      # specificity, so the badge text inherits the card's foreground color
+      # regardless of badge_scheme.
+      #
+      # Background has NO equivalent descendant rule (background isn't
+      # inherited and there's no .color__bg-X * selector), so the bg class
+      # works fine without `!important`.
+      #
+      # Asymmetric prefix:
+      #   - bg classes (color__bg-X): keep unprefixed — they exist as-is
+      #     and don't need to win against anything.
+      #   - text-color classes (color__X): prepend `!` to use the theme's
+      #     existing `!`-prefixed `!important` variants. Beats the parent's
+      #     descendant rule via !important regardless of source order.
+      #
+      # Verified default scheme outputs:
+      #   popular_color_scheme:    "color__bg-secondary !color__secondary"
+      #   best_value_color_scheme: "color__bg-primary !color__primary"
+      #   ships_free_color_scheme: "color__bg-shade-1 !color__text"
+      assign badge_scheme_strong = ''
+      if badge_scheme != blank
+        assign bs_parts = badge_scheme | split: ' '
+        for c in bs_parts
+          if c != blank
+            if c contains 'color__bg-'
+              assign badge_scheme_strong = badge_scheme_strong | append: ' ' | append: c
+            else
+              assign badge_scheme_strong = badge_scheme_strong | append: ' !' | append: c
+            endif
+          endif
+        endfor
+        assign badge_scheme_strong = badge_scheme_strong | strip
+      endif
+
+      assign per_unit_label = ''
+      if val_config and val_config.per_unit_label != blank
+        assign per_unit_label = val_config.per_unit_label
+      endif
+
+      assign savings_pct = 0
+      assign savings_label = ''
+      assign has_compare_at = false
+      if card_variant and card_variant.compare_at_price and card_variant.compare_at_price > card_variant.price
+        assign has_compare_at = true
+      endif
+      if val_config and val_config.savings_label != blank
+        assign savings_label = val_config.savings_label
+      elsif card_variant
+        if has_compare_at
+          assign base_price = card_variant.compare_at_price
+        else
+          assign base_price = first_variant_price
+        endif
+        if base_price and base_price > 0 and base_price > card_variant.price
+          assign price_diff = base_price | minus: card_variant.price
+          assign savings_pct = price_diff | times: 100 | divided_by: base_price
+          if savings_pct > 0
+            assign savings_label = 'SAVE ' | append: savings_pct | append: '%'
+          endif
+        endif
+      endif
+    -%}
+
+    <button
+      type="button"
+      class="ac-vc-card{% unless option_available %} ac-vc-card--unavailable{% endunless %}"
+      style="
+        border: {{ block.settings.card_border_width }}px solid currentColor;
+        border-radius: {{ block.settings.card_border_radius }}px;
+        padding: 12px 12px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        align-items: center;
+        text-align: center;
+      "
+      :class="option{{ card_option_position }} == `{{ value_encoded }}`
+        ? '{{ block.settings.selected_color_scheme }}'
+        : '{{ block.settings.color_scheme }}'"
+      :style="option{{ card_option_position }} == `{{ value_encoded }}` ? { borderWidth: '2px' } : {}"
+      data-option-value-id="{{ value.id }}"
+      data-option-position="{{ card_option_position }}"
+      data-variant-id="{% if card_variant %}{{ card_variant.id }}{% endif %}"
+      data-value="{{ value_encoded }}"
+      @click="
+        option{{ card_option_position }} = `{{ value_encoded }}`;
+        {% if value.product_url %}
+          handleCombinedListing('{{ value.product_url }}', '{{ section.id }}');
+        {% else %}
+          handleProductFormChange(null, '{{ section.id }}', '{{ product.handle | handle }}', '{{ card_option_position }}', '{{ value.id }}');
+        {% endif %}
+      "
+      :disabled="product_loading"
+      title="{{ value }}"
+    >
+
+      {% if badge_text != blank %}
+        <span
+          class="ac-vc-badge {{ badge_scheme_strong }}"
+          style="
+            font-size: {{ block.settings.badge_font_size }}px;
+            border-radius: {{ block.settings.badge_border_radius }}px;
+          "
+        >{{ badge_text }}</span>
+      {% endif %}
+
+      <div class="ac-vc-card__inner" style="display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;">
+
+        <div
+          class="ac-vc-name"
+          style="
+            font-size: {{ block.settings.name_font_size }}px;
+            font-weight: {{ block.settings.name_font_weight }};
+            font-family: var(--type__font-heading-family, sans-serif);
+          "
+        >{{ value }}</div>
+
+        {% if option_available %}
+
+          {% if card_variant %}
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:6px;flex-wrap:wrap;margin-top:4px;">
+              <span
+                class="ac-vc-price"
+                style="
+                  font-size: {{ block.settings.price_font_size }}px;
+                  font-family: var(--type__font-body-family, sans-serif);
+                  font-weight: 700;
+                "
+              >{{ card_variant.price | money }}</span>
+              {% if has_compare_at %}
+                <span
+                  class="ac-vc-compare"
+                  style="
+                    font-size: {{ block.settings.price_font_size | minus: 2 }}px;
+                    opacity: 0.45;
+                    text-decoration: line-through;
+                    font-family: var(--type__font-body-family, sans-serif);
+                  "
+                >{{ card_variant.compare_at_price | money }}</span>
+              {% endif %}
+            </div>
+
+            {% comment %}
+              Shopify's auto unit_price (e.g. "$4.50/item") shown when the
+              variant carries unit-pricing data. Renders below the main
+              price. Format mirrors Shopify's standard:
+                "$35.99 USD - $4.50 USD/item"
+              Only renders when variant.unit_price is present — Shopify
+              auto-omits for variants without unit pricing configured.
+            {% endcomment %}
+            {% if card_variant.unit_price %}
+              <div
+                class="ac-vc-unitprice"
+                style="
+                  font-size: {{ block.settings.price_font_size | minus: 1 }}px;
+                  font-family: var(--type__font-body-family, sans-serif);
+                  opacity: 0.65;
+                  margin-top: 2px;
+                "
+              >{{ card_variant.price | money_with_currency }} - {{ card_variant.unit_price | money_with_currency }}/{{ card_variant.unit_price_measurement.reference_unit }}</div>
+            {% endif %}
+          {% endif %}
+
+          {% if block.settings.show_per_unit and per_unit_label != blank %}
+            <div
+              class="ac-vc-perunit"
+              style="
+                font-size: {{ block.settings.price_font_size }}px;
+                font-family: var(--type__font-body-family, sans-serif);
+                margin-top: 2px;
+              "
+            >{{ per_unit_label }}</div>
+          {% endif %}
+
+          {% if savings_label != blank %}
+            <div
+              class="ac-vc-savings"
+              style="
+                font-size: {{ block.settings.savings_font_size }}px;
+                font-family: var(--type__font-body-family, sans-serif);
+                font-weight: 700;
+                margin-top: 2px;
+              "
+            >{{ savings_label }}</div>
+          {% endif %}
+
+          {% if show_free_shipping %}
+            <div
+              class="ac-vc-shipping"
+              style="
+                font-size: {{ block.settings.shipping_font_size }}px;
+                font-family: var(--type__font-body-family, sans-serif);
+                margin-top: 2px;
+              "
+            >🚚 Ships Free</div>
+          {% endif %}
+
+        {% else %}
+          <div class="ac-vc-soldout">Sold Out</div>
+        {% endif %}
+
+      </div>
+    </button>
+  {% endfor %}
+</div>

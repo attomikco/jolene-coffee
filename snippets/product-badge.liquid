@@ -1,0 +1,80 @@
+<!-- snippets/product-badge.liquid -->
+{% comment %}
+  Product eyebrow badge with full style controls.
+
+  Accepts:
+  - block: {object} The block object with settings.
+
+  Usage:
+    {% render 'product-badge', block: block %}
+{% endcomment %}
+
+{%- liquid
+  assign badge_font_size = block.settings.font_size | default: 12
+  assign badge_font_weight = block.settings.font_weight | default: '700'
+  assign badge_text_transform = block.settings.text_transform | default: 'uppercase'
+  assign badge_letter_spacing = block.settings.letter_spacing | default: 1
+  assign badge_padding_x = block.settings.padding_x | default: 14
+  assign badge_padding_y = block.settings.padding_y | default: 6
+  assign badge_border_width = block.settings.border_width | default: 1
+  assign badge_border_radius = block.settings.border_radius | default: 20
+
+  # Extract the background class from the border scheme pair and map it to
+  # the matching CSS variable so the border paints independently of the
+  # wrapper's color_scheme inherited text color.
+  assign border_bg_class = block.settings.border_color_scheme | split: ' ' | first
+  case border_bg_class
+    when 'color__bg-body'        ; assign border_var = 'var(--color__background-body)'
+    when 'color__bg-neutral'     ; assign border_var = 'var(--color__background-neutral)'
+    when 'color__bg-overlay-1'   ; assign border_var = 'var(--color__background-overlay-1)'
+    when 'color__bg-overlay-2'   ; assign border_var = 'var(--color__background-overlay-2)'
+    when 'color__bg-overlay-3'   ; assign border_var = 'var(--color__background-overlay-3)'
+    when 'color__bg-shade-1'     ; assign border_var = 'var(--color__background-shade-1)'
+    when 'color__bg-shade-2'     ; assign border_var = 'var(--color__background-shade-2)'
+    when 'color__bg-shade-3'     ; assign border_var = 'var(--color__background-shade-3)'
+    when 'color__bg-primary'     ; assign border_var = 'var(--color__background-primary)'
+    when 'color__bg-secondary'   ; assign border_var = 'var(--color__background-secondary)'
+    when 'color__bg-tertiary'    ; assign border_var = 'var(--color__background-tertiary)'
+    else
+      assign border_var = 'currentColor'
+  endcase
+-%}
+
+<div
+  class="w-full px-4"
+  style="
+    padding-top:{{ block.settings.spacing_top }}px;
+    padding-bottom:{{ block.settings.spacing_bottom }}px;
+  "
+>
+  <div
+    {{ block.shopify_attributes }}
+    class="{{ block.settings.color_scheme }}"
+    style="
+      display: inline-flex !important;
+      align-items: center !important;
+      gap: 6px !important;
+      width: fit-content !important;
+      font-family: var(--type__font-heading-family, var(--type__font-body-family, sans-serif)) !important;
+      font-size: {{ badge_font_size }}px !important;
+      font-weight: {{ badge_font_weight }} !important;
+      text-transform: {{ badge_text_transform }} !important;
+      letter-spacing: {{ badge_letter_spacing }}px !important;
+      border: {{ badge_border_width }}px solid {{ border_var }} !important;
+      border-radius: {{ badge_border_radius }}px !important;
+      padding: {{ badge_padding_y }}px {{ badge_padding_x }}px !important;
+      line-height: 1.4 !important;
+    "
+  >
+    {% if block.settings.badge_emoji != blank %}
+      <span style="font-size: {{ badge_font_size }}px !important;">{{ block.settings.badge_emoji }}</span>
+    {% endif %}
+    <span style="
+      font-size: {{ badge_font_size }}px !important;
+      font-weight: {{ badge_font_weight }} !important;
+      text-transform: {{ badge_text_transform }} !important;
+      letter-spacing: {{ badge_letter_spacing }}px !important;
+      font-family: inherit !important;
+    ">{{ block.settings.badge_text | default: 'Badge Text' }}</span>
+  </div>
+</div>

@@ -1,0 +1,63 @@
+{
+  "order": [
+    "text_contactintro",
+    "main"
+  ],
+  "sections": {
+    "main": {
+      "type": "contact",
+      "blocks": {
+        "field_contact_message": {
+          "type": "field",
+          "settings": {
+            "input_type": "textarea",
+            "input_label": "Message",
+            "input_placeholder": "Enter your message"
+          }
+        }
+      },
+      "settings": {
+        "heading": "",
+        "color_text": "",
+        "visibility": "",
+        "spacing_top": 20,
+        "color_border": "color__border-divider-1",
+        "color_button": "btn",
+        "color_scheme": "color__bg-body",
+        "style_border": "",
+        "enable_margin": true,
+        "spacing_bottom": 100,
+        "color_background": "#fff4eb",
+        "enable_max_width": true,
+        "enable_color_fade": false,
+        "layout_x_alignment": "justify-start"
+      },
+      "block_order": [
+        "field_contact_message"
+      ]
+    },
+    "text_contactintro": {
+      "type": "text",
+      "settings": {
+        "content": "<p>Questions about your order or want to know more about our coffee? We're here to help and typically respond within 24 hours.</p>",
+        "heading": "Get in Touch",
+        "button_url": "",
+        "color_text": "",
+        "visibility": "",
+        "spacing_top": 100,
+        "button_label": "",
+        "color_border": "color__border-divider-1",
+        "color_button": "btn btn--secondary",
+        "color_scheme": "color__bg-body",
+        "style_border": "",
+        "enable_margin": true,
+        "spacing_bottom": 20,
+        "color_background": "#fff4eb",
+        "enable_color_fade": false,
+        "layout_x_alignment": "",
+        "layout_column_width": 100,
+        "style_text_alignment": ""
+      }
+    }
+  }
+}
