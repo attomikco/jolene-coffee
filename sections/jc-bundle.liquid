@@ -62,6 +62,43 @@
 ]
 {%- endcapture -%}
 
+{%- comment -%}
+  Scoped to this section id so it cannot leak into other sections.
+  Deliberately sets no `color` — the theme's unscoped `body *` rule
+  at (0,0,1) re-sets colour on every descendant, so colour here
+  would not cascade anyway. Uses opacity for de-emphasis instead.
+{%- endcomment -%}
+<style>
+  #jc-bundle-{{ section.id }} .jc-bundle__header {
+    max-width: 62ch;
+    margin-left: auto;
+    margin-right: auto;
+    text-align: center;
+  }
+  #jc-bundle-{{ section.id }} .jc-bundle__head,
+  #jc-bundle-{{ section.id }} .jc-bundle__lead {
+    text-align: center;
+  }
+  #jc-bundle-{{ section.id }} .jc-bundle__packsize {
+    margin-top: 2px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    opacity: 0.65;
+  }
+  #jc-bundle-{{ section.id }} .jc-bundle__cardtotal {
+    margin-top: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-align: center;
+    opacity: 0.8;
+  }
+  #jc-bundle-{{ section.id }} .jc-bundle__cardtotal[hidden] {
+    display: none;
+  }
+</style>
+
 <div
   class="jc-bundle {{ section.settings.color_scheme }}"
   id="jc-bundle-{{ section.id }}"
@@ -73,11 +110,15 @@
 >
   <div class="{{ settings.x_margin }}">
 
-    {%- if section.settings.heading != blank -%}
-      <h2 class="jc-bundle__head type__heading">{{ section.settings.heading }}</h2>
-    {%- endif -%}
-    {%- if section.settings.lead != blank -%}
-      <div class="jc-bundle__lead">{{ section.settings.lead }}</div>
+    {%- if section.settings.heading != blank or section.settings.lead != blank -%}
+      <div class="jc-bundle__header">
+        {%- if section.settings.heading != blank -%}
+          <h2 class="jc-bundle__head type__heading">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.lead != blank -%}
+          <div class="jc-bundle__lead">{{ section.settings.lead }}</div>
+        {%- endif -%}
+      </div>
     {%- endif -%}
 
     {%- if max_tier > 0 -%}
@@ -162,6 +203,7 @@
 
               <div class="jc-bundle__body">
                 <p class="jc-bundle__name">{{ p.title }}</p>
+                <p class="jc-bundle__packsize">{{ pack_size }} cans per pack</p>
                 <p class="jc-bundle__price">
                   {{ pv.price | money }}
                   <span class="jc-bundle__unit">{{ unit_cents | money }}/can</span>
@@ -173,6 +215,8 @@
                 <span class="jc-bundle__count" data-count>0</span>
                 <button type="button" class="jc-bundle__step" data-step="1" aria-label="Add one {{ p.title | escape }}">+</button>
               </div>
+
+              <p class="jc-bundle__cardtotal" data-cardtotal aria-live="polite" hidden></p>
             </div>
           {%- endif -%}
         {%- endfor -%}
@@ -250,6 +294,19 @@
         var n = state[vid] || 0;
         card.querySelector('[data-count]').textContent = n;
         card.classList.toggle('is-picked', n > 0);
+
+        // Per-card can total, so the stepper number is never ambiguous.
+        var total = card.querySelector('[data-cardtotal]');
+        if (total) {
+          if (n > 0) {
+            total.hidden = false;
+            total.textContent = (n * packSize) + ' cans';
+          } else {
+            total.hidden = true;
+            total.textContent = '';
+          }
+        }
+
         qty += n;
         gross += n * parseInt(card.dataset.price, 10);
       });
