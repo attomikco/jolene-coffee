@@ -160,10 +160,19 @@
           if (!btn) return;
           var variantId = btn.getAttribute('data-variant-id');
           if (!variantId) return;
+          // Only touch the form the clicked control belongs to. Selecting a size on the
+          // PDP used to write that variant id into every id-input on the page, including
+          // an open quick-add drawer for a different product and the upsell cards' inputs.
+          var scope = btn.closest('form');
+          if (!scope) return;
           requestAnimationFrame(function () {
             requestAnimationFrame(function () {
-              document.querySelectorAll('select[name="id"], input[name="id"]').forEach(function (el) {
-                if (el.value !== variantId) el.value = variantId;
+              scope.querySelectorAll('select[name="id"], input[name="id"]').forEach(function (el) {
+                // A select silently resets to value="" (selectedIndex -1) when handed an id
+                // it has no option for, which desyncs the DOM from Alpine's state.
+                if (el.tagName === 'SELECT' && !el.querySelector('option[value="' + variantId + '"]')) return;
+                if (el.value === variantId) return;
+                el.value = variantId;
                 el.dispatchEvent(new Event('change', { bubbles: true }));
               });
             });
