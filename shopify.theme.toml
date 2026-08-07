@@ -1,0 +1,9 @@
+# Pins Shopify CLI commands to the Jolene Coffee store so they stop defaulting to
+# whichever store the CLI last used (c010f3-c8). `.shopify/` — where the CLI caches
+# the store itself — is gitignored, so this committed environment file is the
+# shareable equivalent.
+#
+# Usage: append `-e development` to CLI commands, e.g.
+#   shopify theme dev -e development
+[environments.development]
+store = "yf0y9j-hu.myshopify.com"
