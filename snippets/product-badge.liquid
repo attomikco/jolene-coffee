@@ -10,6 +10,10 @@
 {% endcomment %}
 
 {%- liquid
+  # Badge copy is per-product: the custom.pdp_badge metafield wins, and the block's
+  # badge_text setting is the fallback so a product without the metafield still renders.
+  assign badge_text = product.metafields.custom.pdp_badge.value | default: block.settings.badge_text
+
   assign badge_font_size = block.settings.font_size | default: 12
   assign badge_font_weight = block.settings.font_weight | default: '700'
   assign badge_text_transform = block.settings.text_transform | default: 'uppercase'
@@ -40,6 +44,7 @@
   endcase
 -%}
 
+{%- if badge_text != blank -%}
 <div
   class="w-full px-4"
   style="
@@ -75,6 +80,7 @@
       text-transform: {{ badge_text_transform }} !important;
       letter-spacing: {{ badge_letter_spacing }}px !important;
       font-family: inherit !important;
-    ">{{ block.settings.badge_text | default: 'Badge Text' }}</span>
+    ">{{ badge_text }}</span>
   </div>
 </div>
+{%- endif -%}

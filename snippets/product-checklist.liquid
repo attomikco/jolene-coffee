@@ -9,6 +9,25 @@
     {% render 'product-checklist', block: block %}
 {% endcomment %}
 
+{%- liquid
+  # Bullets are per-product: the custom.pdp_highlights list metafield wins. When it is
+  # empty we fall back to the block's item_1–item_5 settings, collapsed into the same
+  # array shape so the markup below has a single rendering path.
+  assign highlights = product.metafields.custom.pdp_highlights.value
+
+  if highlights == blank
+    assign fallback = ''
+    assign item_keys = 'item_1,item_2,item_3,item_4,item_5' | split: ','
+    for item_key in item_keys
+      assign item = block.settings[item_key]
+      if item != blank
+        assign fallback = fallback | append: item | append: '~|~'
+      endif
+    endfor
+    assign highlights = fallback | split: '~|~'
+  endif
+-%}
+
 <div
   class="w-full px-4 {{ block.settings.color_scheme }}"
   style="
@@ -18,46 +37,14 @@
   {{ block.shopify_attributes }}
 >
   <ul class="ac-checklist">
-    {% if block.settings.item_1 != blank %}
+    {% for item in highlights %}
       <li class="ac-checklist__item">
         <span class="ac-checklist__check {{ block.settings.check_color_scheme }}">
           <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
         </span>
-        <span class="ac-checklist__text">{{ block.settings.item_1 }}</span>
+        <span class="ac-checklist__text">{{ item }}</span>
       </li>
-    {% endif %}
-    {% if block.settings.item_2 != blank %}
-      <li class="ac-checklist__item">
-        <span class="ac-checklist__check {{ block.settings.check_color_scheme }}">
-          <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="ac-checklist__text">{{ block.settings.item_2 }}</span>
-      </li>
-    {% endif %}
-    {% if block.settings.item_3 != blank %}
-      <li class="ac-checklist__item">
-        <span class="ac-checklist__check {{ block.settings.check_color_scheme }}">
-          <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="ac-checklist__text">{{ block.settings.item_3 }}</span>
-      </li>
-    {% endif %}
-    {% if block.settings.item_4 != blank %}
-      <li class="ac-checklist__item">
-        <span class="ac-checklist__check {{ block.settings.check_color_scheme }}">
-          <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="ac-checklist__text">{{ block.settings.item_4 }}</span>
-      </li>
-    {% endif %}
-    {% if block.settings.item_5 != blank %}
-      <li class="ac-checklist__item">
-        <span class="ac-checklist__check {{ block.settings.check_color_scheme }}">
-          <svg viewBox="0 0 24 24"><path d="M20 6L9 17L4 12" stroke="currentColor" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        </span>
-        <span class="ac-checklist__text">{{ block.settings.item_5 }}</span>
-      </li>
-    {% endif %}
+    {% endfor %}
 
     {%- liquid
       # Build the value-prop line from live variant pricing rather than hardcoding it.
