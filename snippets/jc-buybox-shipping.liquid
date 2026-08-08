@@ -41,7 +41,7 @@
       <span
         class="jc-bb-ship__label"
         :class="jc_ships_free ? 'is-free' : 'is-gap'"
-        x-text="jc_ships_free ? 'Ships free' : `${jcMoney(jc_ship_gap)} to free shipping`"
+        x-text="jc_ships_free ? 'Ships free' : `${Shopify.formatMoney(jc_ship_gap)} to free shipping`"
       ></span>
     </div>
   </div>

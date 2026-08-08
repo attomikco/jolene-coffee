@@ -19,6 +19,18 @@
       "STEP 1 - HOW MANY" label in its place).
 {% endcomment %}
 
+{%- comment -%}
+  A NOTE ON THE FONT SIZES BELOW
+
+  name_font_size, price_font_size and savings_font_size are still in this
+  block's schema, but the tile figures no longer read them. They were fixed px
+  values stored in templates/product.json, so they sat on their own ladder and
+  stopped agreeing with the rest of the site the moment settings.type_base_size
+  moved — which is the whole reason the buy box was put on the type scale.
+
+  badge_font_size is the one left as-is: the badge is 9px and the semantic
+  scale bottoms out around 13px, so there is no token that small to move it to.
+{%- endcomment -%}
 {%- liquid
   assign card_option_position = card_option.position
   assign option_index = card_option_position | minus: 1
@@ -341,7 +353,7 @@
         <div
           class="ac-vc-name"
           style="
-            font-size: {{ block.settings.name_font_size }}px;
+            font-size: var(--type__font-small);
             font-weight: {{ block.settings.name_font_weight }};
             font-family: var(--type__font-header-family, sans-serif);
           "
@@ -354,17 +366,17 @@
               <span
                 class="ac-vc-price"
                 style="
-                  font-size: {{ block.settings.price_font_size }}px;
+                  font-size: var(--type__font-smaller);
                   font-family: var(--type__font-body-family, sans-serif);
                   font-weight: 700;
                 "
-                x-text="jcMoney(jcTilePrice({{ card_variant.id }}))"
+                x-text="Shopify.formatMoney(jcTilePrice({{ card_variant.id }}))"
               >{{ card_variant.price | money }}</span>
               {% if has_compare_at %}
                 <span
                   class="ac-vc-compare"
                   style="
-                    font-size: {{ block.settings.price_font_size | minus: 2 }}px;
+                    font-size: var(--type__font-100);
                     opacity: 0.45;
                     text-decoration: line-through;
                     font-family: var(--type__font-body-family, sans-serif);
@@ -385,7 +397,7 @@
               <div
                 class="ac-vc-unitprice"
                 style="
-                  font-size: {{ block.settings.price_font_size | minus: 1 }}px;
+                  font-size: var(--type__font-100);
                   font-family: var(--type__font-body-family, sans-serif);
                   opacity: 0.65;
                   margin-top: 2px;
@@ -405,12 +417,12 @@
             <div
               class="ac-vc-perunit"
               style="
-                font-size: {{ block.settings.price_font_size }}px;
+                font-size: var(--type__font-smaller);
                 font-family: var(--type__font-body-family, sans-serif);
                 margin-top: 2px;
               "
               {% if per_unit_is_live %}
-                x-text="`${jcMoney(jcTileUnit({{ card_variant.id }}))}/can`"
+                x-text="`${Shopify.formatMoney(jcTileUnit({{ card_variant.id }}))}/can`"
               {% endif %}
             >{{ per_unit_label }}</div>
           {% endif %}
@@ -419,7 +431,7 @@
             <div
               class="ac-vc-savings"
               style="
-                font-size: {{ block.settings.savings_font_size }}px;
+                font-size: var(--type__font-100);
                 font-family: var(--type__font-body-family, sans-serif);
                 font-weight: 700;
                 margin-top: 2px;

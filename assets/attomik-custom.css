@@ -673,7 +673,10 @@
   font-family: var(--type__font-header-family);
   font-style: var(--type__font-header-style);
   font-weight: var(--type__font-header-weight);
-  font-size: var(--type__font-heading-4);
+  /* -heading-3, not -4. At -4 the price topped out below the title's -heading-2
+     and the column argued with itself: the whole point of moving price up was
+     to make it the first thing read. */
+  font-size: var(--type__font-heading-3);
   line-height: var(--type__font-heading-line);
   color: var(--jc-bb-ink);
   font-variant-numeric: tabular-nums;
@@ -757,7 +760,7 @@
   .jc-bb-sizes .ac-vc-savings { display: none; }
   .jc-bb-sizes .ac-vc-card { padding: 16px 4px 10px; }
   .jc-bb-sizes .ac-vc-name { font-size: var(--type__font-smaller) !important; }
-  .jc-bb-sizes .ac-vc-price { font-size: var(--type__font-smaller) !important; }
+  .jc-bb-sizes .ac-vc-price { font-size: var(--type__font-100) !important; }
 }
 
 /* --- Free shipping progress bar --- */
