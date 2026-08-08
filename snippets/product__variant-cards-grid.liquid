@@ -370,7 +370,7 @@
                   font-family: var(--type__font-body-family, sans-serif);
                   font-weight: 700;
                 "
-                x-text="Shopify.formatMoney(jcTilePrice({{ card_variant.id }}))"
+                x-text="jcMoney(jcTilePrice({{ card_variant.id }}))"
               >{{ card_variant.price | money }}</span>
               {% if has_compare_at %}
                 <span
@@ -422,7 +422,7 @@
                 margin-top: 2px;
               "
               {% if per_unit_is_live %}
-                x-text="`${Shopify.formatMoney(jcTileUnit({{ card_variant.id }}))}/can`"
+                x-text="`${jcMoney(jcTileUnit({{ card_variant.id }}))}/can`"
               {% endif %}
             >{{ per_unit_label }}</div>
           {% endif %}

@@ -125,8 +125,32 @@
     edit_quantity: 0, // {number} Quantity to use when editing
 
     // Prices
-    price_format_with_currency: '{{ shop.money_with_currency_format }}', // {string} Format for price with currency
-    price_format_without_currency: '{{ shop.money_format }}', // {string} Format for price without currency
+    {% comment %}
+      THESE TWO LOOK SWAPPED. THEY ARE. DO NOT "FIX" THEM.
+
+      price_format_with_currency is given the format WITHOUT the currency code,
+      and vice versa. That is deliberate, because the consumer is inverted to
+      match. formatMoney in assets/main-*.js reads:
+
+        formatString = enableCurrency === false ? withCurrency : withoutCurrency
+
+      which is backwards relative to the names, and the same inversion repeats
+      in its forceEnableCurrency branch. The two bugs cancel: with
+      settings.enable_currency at its default of true, the output is "$17.99 USD"
+      — the currency code shown when the setting says to show it, which is
+      correct behaviour.
+
+      Correcting this assignment alone does not repair anything; it inverts a
+      working system. enable_currency would then mean the opposite of its label,
+      and turning it off would bring the currency code back. The real fix is to
+      straighten the ternary in the bundle, and the bundle has no source in this
+      repo — main-*.js is a compiled artifact.
+
+      Anything that wants a figure without the currency code should ask for it
+      at the call site instead. See jcMoney() in snippets/jc-buybox-state.liquid.
+    {% endcomment %}
+    price_format_with_currency: '{{ shop.money_format }}', // {string} Format for price with currency
+    price_format_without_currency: '{{ shop.money_with_currency_format }}', // {string} Format for price without currency
     enable_zeros: {{ settings.enable_zeros }}, // {Boolean} Set to false to hide '.00'
     enable_currency: {{ settings.enable_currency }}, // {Boolean} Set to false to hide 'CAD'
 
