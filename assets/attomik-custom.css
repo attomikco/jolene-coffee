@@ -487,11 +487,26 @@
    PDP BUY BOX (jc-bb)
    Right column of the product grid. The left column (gallery) is untouched.
 
-   NOTE, as in the jc-bundle block above: the compiled bundle declares
+   TYPE: every family, size, weight and prose line-height below comes from the
+   theme's type tokens, computed in snippets/theme__styles.liquid from
+   settings.type_base_size and settings.type_scale_ratio. There are no px font
+   sizes here — a hardcoded one silently stops matching the rest of the site the
+   moment either setting moves.
+
+   Two names are easy to mistype into a variable that does not exist, which
+   fails silently and leaves the property inheriting: the family var is
+   `--type__font-header-family` (NOT -heading-), and the theme spells
+   capitalization `capiliziation`. Both spellings below are deliberate.
+
+   Unitless line-heights (the title, the compact plan rows, the chips) are not
+   an exception to the above: a ratio tracks whatever font-size the token
+   resolves to, so it has none of the drift a px value would.
+
+   COLOUR, as in the jc-bundle block above: the compiled bundle declares
    `body * { color: var(--color__text-light) }` unscoped at specificity (0,0,1).
-   Colour therefore does NOT cascade from a container. Every text-bearing
-   element below carries its own colour rule on its own class (0,1,0) on
-   purpose — do not refactor these to inherit from a parent.
+   Colour does NOT cascade from a container. Every text-bearing element below
+   carries its own colour rule on its own class (0,1,0) on purpose — do not
+   refactor these to inherit from a parent.
    ============================================ */
 :root {
   --jc-bb-ink: #17150F;
@@ -502,46 +517,72 @@
   --jc-bb-muted: #8A7F72;
   --jc-bb-yellow: #FFCE1F;
   --jc-bb-green: #6B7F3A;
-  /* The theme ships no mono face (heading and body are both Inter), so the
-     mono role falls back to the platform UI mono stack. Swap this one var if
-     a brand mono is ever added to attomik-fonts.css. */
-  --jc-bb-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+
+  /* One vertical rhythm for the whole column, stepped off the type scale's
+     base size rather than a second independent px ladder. Major blocks
+     (identity / price / step 1 / step 2 / CTA) are separated by -xl; content
+     inside a block uses -sm and below. */
+  --jc-bb-space-2xs: calc(var(--type__font-300) * 0.25);
+  --jc-bb-space-xs: calc(var(--type__font-300) * 0.5);
+  --jc-bb-space-sm: calc(var(--type__font-300) * 0.75);
+  --jc-bb-space-md: calc(var(--type__font-300) * 1);
+  --jc-bb-space-lg: calc(var(--type__font-300) * 1.5);
+  --jc-bb-space-xl: calc(var(--type__font-300) * 2);
+  --jc-bb-gutter: calc(var(--type__font-300) * 1);
 }
 
-/* --- Eyebrow / step labels: the one shared mono treatment --- */
+/* --- Nav-family labels: eyebrow, step headings, frequency label -------------
+   The theme ships no mono face — body, heading and nav are all Inter. A
+   platform-mono fallback would render differently on every OS and match nothing
+   else on the page, so the mono role is carried by the nav family with tracking
+   and uppercase instead. */
 .jc-bb-eyebrow,
-.jc-bb-step {
-  font-family: var(--jc-bb-mono);
-  font-size: 11px;
-  font-weight: 500;
+.jc-bb-step,
+.jc-bb-plan__freq-label {
+  font-family: var(--type__font-nav-family);
+  font-style: var(--type__font-nav-style);
+  font-weight: var(--type__font-nav-weight);
+  font-size: var(--type__font-smaller);
+  line-height: var(--spacing__font-smaller);
   letter-spacing: 0.14em;
   text-transform: uppercase;
   color: var(--jc-bb-muted);
-  line-height: 1.4;
 }
-.jc-bb-eyebrow { display: block; margin-bottom: 10px; }
+.jc-bb-eyebrow {
+  display: block;
+  margin-bottom: var(--jc-bb-space-xs);
+}
 .jc-bb-step {
   display: block;
-  padding: 0 16px;
-  margin-bottom: 6px;
+  padding: 0 var(--jc-bb-gutter);
+  margin-bottom: var(--jc-bb-space-xs);
 }
 
-/* --- Title / flavor line --- */
+/* --- Identity block --- */
+.jc-bb-head {
+  padding: 0 var(--jc-bb-gutter);
+}
 .jc-bb-title {
-  font-family: var(--ac-font-heading);
-  font-weight: var(--ac-font-weight-heading);
-  font-size: clamp(30px, 4.4vw, 44px);
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-heading-2);
+  /* The one deliberate departure from --type__font-heading-line: the design
+     calls for ~0.98 on the title alone. Unitless, so it still tracks the token
+     that sets the size. */
   line-height: 0.98;
   letter-spacing: -0.01em;
   color: var(--jc-bb-ink);
   margin: 0;
 }
 .jc-bb-flavor {
-  font-family: var(--ac-font-body);
-  font-size: 15px;
-  line-height: 1.5;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
   color: var(--jc-bb-ink);
-  margin: 12px 0 0;
+  margin: var(--jc-bb-space-sm) 0 0;
   max-width: 46ch;
 }
 
@@ -549,14 +590,17 @@
 .jc-bb-chips {
   display: flex;
   flex-wrap: wrap;
-  gap: 6px;
+  gap: var(--jc-bb-space-2xs);
   list-style: none;
-  margin: 16px 0 0;
+  margin: var(--jc-bb-space-md) 0 0;
   padding: 0;
 }
 .jc-bb-chip {
-  font-family: var(--ac-font-body);
-  font-size: 12px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  /* Ratio of 1 on purpose: the pill's height is its padding, not its leading. */
   line-height: 1;
   color: var(--jc-bb-ink);
   background: var(--jc-bb-tan);
@@ -568,48 +612,69 @@
 /* --- Per-product bullets, under the chips --- */
 .jc-bb-bullets {
   list-style: none;
-  margin: 14px 0 0;
+  margin: var(--jc-bb-space-sm) 0 0;
   padding: 0;
 }
 .jc-bb-bullet {
   position: relative;
-  font-family: var(--ac-font-body);
-  font-size: 14px;
-  line-height: 1.45;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
   color: var(--jc-bb-ink);
-  padding-left: 16px;
-  margin-top: 5px;
+  padding-left: var(--jc-bb-space-md);
+  margin-top: var(--jc-bb-space-2xs);
 }
 .jc-bb-bullet::before {
   content: "";
   position: absolute;
   left: 0;
-  top: 0.55em;
+  /* Centred on the first line box, so it tracks the token line-height rather
+     than a fixed offset tuned to one font size. */
+  top: calc((var(--spacing__font-small) - 5px) / 2);
   width: 5px;
   height: 5px;
   border-radius: 50%;
   background: var(--jc-bb-ink);
 }
 
+/* --- Review rating row ------------------------------------------------------
+   Klaviyo renders this app block client-side, so there is no count to test in
+   Liquid. It starts collapsed and is revealed by jc-buybox-rating's observer
+   only once the widget has injected a rating that is not zero — an empty star
+   row and "0 reviews" is a whole row of the column spent saying nothing. */
+.jc-bb-rating {
+  padding: 0 var(--jc-bb-gutter);
+  margin-top: var(--jc-bb-space-sm);
+}
+.jc-bb-rating--empty {
+  display: none;
+}
+
 /* --- Hairline divider --- */
 .jc-bb-rule {
   border: 0;
   border-top: 1px solid var(--jc-bb-hairline);
-  margin: 22px 0 18px;
+  margin: var(--jc-bb-space-lg) 0 var(--jc-bb-space-md);
 }
 
 /* --- Price block --- */
+.jc-bb-priceblock {
+  padding: 0 var(--jc-bb-gutter);
+}
 .jc-bb-price__top {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 16px;
+  gap: var(--jc-bb-space-md);
 }
 .jc-bb-price__main {
-  font-family: var(--ac-font-heading);
-  font-weight: var(--ac-font-weight-heading);
-  font-size: 38px;
-  line-height: 1;
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-heading-4);
+  line-height: var(--type__font-heading-line);
   color: var(--jc-bb-ink);
   font-variant-numeric: tabular-nums;
 }
@@ -617,43 +682,45 @@
    figure multiplied back up — that price has never been charged, and striking
    it through would assert a former price that did not exist. */
 .jc-bb-price__compare {
-  font-family: var(--ac-font-body);
-  font-size: 17px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
   color: var(--jc-bb-muted);
   text-decoration: line-through;
-  margin-left: 10px;
+  margin-left: var(--jc-bb-space-xs);
 }
 .jc-bb-price__unitwrap { text-align: right; flex: 0 0 auto; }
 .jc-bb-price__unit {
-  font-family: var(--ac-font-heading);
-  font-weight: var(--ac-font-weight-heading);
-  font-size: 20px;
-  line-height: 1.1;
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-heading-6);
+  line-height: var(--type__font-heading-line);
   color: var(--jc-bb-ink);
   font-variant-numeric: tabular-nums;
   display: block;
 }
 .jc-bb-price__unit-label {
-  font-family: var(--ac-font-body);
-  font-size: 12px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  line-height: var(--spacing__font-smaller);
   color: var(--jc-bb-muted);
   display: block;
-  margin-top: 2px;
 }
-.jc-bb-price__save {
-  font-family: var(--ac-font-body);
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--jc-bb-green);
-  margin-top: 8px;
-}
+.jc-bb-price__save,
 .jc-bb-price__starter {
-  font-family: var(--ac-font-body);
-  font-size: 13px;
-  line-height: 1.4;
-  color: var(--jc-bb-muted);
-  margin-top: 8px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
+  margin-top: var(--jc-bb-space-xs);
 }
+.jc-bb-price__save { color: var(--jc-bb-green); }
+.jc-bb-price__starter { color: var(--jc-bb-muted); }
 
 /* --- Size tiles: 4 across at every width -----------------------------------
    product__variant-cards.liquid emits an inline
@@ -661,31 +728,44 @@
    from the block's desktop_columns setting, which lives in templates/product.json.
    This selector is (0,2,0) against that rule's (0,1,0) and also carries
    !important, so it wins in both directions without the template changing. */
+.jc-bb-sizes {
+  margin-top: var(--jc-bb-space-xl);
+}
 .jc-bb-sizes .ac-vc-grid,
 .jc-bb-sizes .ac-vc-grid[class] {
   grid-template-columns: repeat(4, 1fr) !important;
-  column-gap: 8px;
+  column-gap: var(--jc-bb-space-xs);
   padding-top: 0;
 }
 .jc-bb-sizes .ac-vc-card { padding: 18px 6px 12px; }
+/* The per-can rate and its percentage sit on their own lines, and the savings
+   line is always present even when blank. Without it the smallest pack — the
+   one with nothing to save against — would be a line shorter than the other
+   three and its content would float against theirs. */
+.jc-bb-sizes .ac-vc-perunit,
+.jc-bb-sizes .ac-vc-savings {
+  display: block;
+  width: 100%;
+  text-align: center;
+}
 /* Narrow columns: shed the per-can rate and its percentage rather than let the
    row wrap to two lines. The hero price block still states the per-can figure
-   for the selected pack, so nothing is actually lost. */
-@media (max-width: 520px) {
+   for the selected pack, so nothing is actually lost. Dropping the currency
+   code shortened every figure, so this now only bites on the narrowest phones. */
+@media (max-width: 400px) {
   .jc-bb-sizes .ac-vc-perunit,
   .jc-bb-sizes .ac-vc-savings { display: none; }
   .jc-bb-sizes .ac-vc-card { padding: 16px 4px 10px; }
-  .jc-bb-sizes .ac-vc-name { font-size: 13px !important; }
-  .jc-bb-sizes .ac-vc-price { font-size: 12px !important; }
-  .jc-bb-sizes .ac-vc-badge { font-size: 8px; padding: 3px 6px; }
+  .jc-bb-sizes .ac-vc-name { font-size: var(--type__font-smaller) !important; }
+  .jc-bb-sizes .ac-vc-price { font-size: var(--type__font-smaller) !important; }
 }
 
 /* --- Free shipping progress bar --- */
-.jc-bb-ship { padding: 14px 16px 0; }
+.jc-bb-ship { padding: var(--jc-bb-space-sm) var(--jc-bb-gutter) 0; }
 .jc-bb-ship__row {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--jc-bb-space-sm);
 }
 .jc-bb-ship__track {
   flex: 1 1 auto;
@@ -704,8 +784,13 @@
 .jc-bb-ship__fill.is-free { background: var(--jc-bb-green); }
 .jc-bb-ship__label {
   flex: 0 0 auto;
-  font-family: var(--ac-font-body);
-  font-size: 12px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-size: var(--type__font-smaller);
+  line-height: var(--spacing__font-smaller);
+  /* The theme exposes no body-bold weight token — type_font_body_bold exists
+     only as a @font-face — so emphasis on body copy is the literal 700 the
+     theme's own .font-bold utility uses. */
   font-weight: 700;
   white-space: nowrap;
   color: var(--jc-bb-muted);
@@ -717,16 +802,19 @@
    Deliberately unlike the size tiles above: full-bleed rows with a radio dot
    and a right-aligned price, against a centred bordered grid. The two controls
    used to be near-identical cards, which read as one list of eight choices. */
+.jc-bb-plansblock {
+  margin-top: var(--jc-bb-space-xl);
+}
 .jc-bb-plans {
-  padding: 0 16px;
+  padding: 0 var(--jc-bb-gutter);
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--jc-bb-space-xs);
 }
 .jc-bb-plan {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--jc-bb-space-sm);
   width: 100%;
   text-align: left;
   padding: 14px 16px;
@@ -760,55 +848,83 @@
 }
 .jc-bb-plan__body { flex: 1 1 auto; min-width: 0; }
 .jc-bb-plan__title {
-  font-family: var(--ac-font-body);
-  font-size: 15px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-size: var(--type__font-small);
   font-weight: 700;
+  /* Tight ratios here, not --spacing__font-*: these two lines are stacked
+     inside a compact control whose height is part of the design. Being
+     unitless they still follow the token that sets the size. */
   line-height: 1.25;
   color: var(--jc-bb-ink);
 }
 .jc-bb-plan__sub {
-  font-family: var(--ac-font-body);
-  font-size: 12px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
   line-height: 1.35;
   color: var(--jc-bb-muted);
-  margin-top: 2px;
+  margin-top: var(--jc-bb-space-2xs);
 }
 .jc-bb-plan__right { flex: 0 0 auto; text-align: right; }
 .jc-bb-plan__price {
-  font-family: var(--ac-font-heading);
-  font-weight: var(--ac-font-weight-heading);
-  font-size: 17px;
-  line-height: 1.1;
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-heading-6);
+  line-height: var(--type__font-heading-line);
   color: var(--jc-bb-ink);
   font-variant-numeric: tabular-nums;
 }
 .jc-bb-plan__delta {
-  font-family: var(--ac-font-body);
-  font-size: 12px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  line-height: var(--spacing__font-smaller);
   color: var(--jc-bb-green);
-  margin-top: 2px;
 }
 .jc-bb-plan__freq {
-  padding: 0 16px 0 46px;
-  margin-top: -2px;
+  padding: 0 var(--jc-bb-gutter) 0 46px;
+  margin-top: var(--jc-bb-space-2xs);
 }
 .jc-bb-plan__freq select {
-  font-family: var(--ac-font-body);
-  font-size: 13px;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
   color: var(--jc-bb-ink);
 }
 .jc-bb-plan__freq-label {
-  font-family: var(--jc-bb-mono);
-  font-size: 10px;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  color: var(--jc-bb-muted);
   display: block;
-  margin-bottom: 4px;
+  margin-bottom: var(--jc-bb-space-2xs);
+}
+
+/* --- Subscriber perks marquee ----------------------------------------------
+   The block sits between the plan rows and the CTA. min-width:0 is the point:
+   the buy column is a flex container, its items default to min-width:auto, and
+   an item whose content is wider than the column (the marquee track is sized
+   `width: fit-content`) refuses to shrink and pushes past the right edge. */
+.jc-bb-perks {
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  margin-top: var(--jc-bb-space-lg);
+}
+.jc-bb-perks .ac-perks {
+  max-width: 100%;
+}
+.jc-bb-perks .ac-perks__marquee {
+  overflow: hidden;
+  max-width: 100%;
 }
 
 /* --- CTA + reassurance --- */
-.jc-bb-cta-wrap { padding: 18px 16px 0; }
+.jc-bb-cta-wrap {
+  padding: 0 var(--jc-bb-gutter);
+  margin-top: var(--jc-bb-space-xl);
+}
 .jc-bb-cta {
   display: flex;
   align-items: center;
@@ -820,11 +936,13 @@
   border-radius: var(--ac-radius-md);
   background: var(--jc-bb-ink);
   color: var(--jc-bb-cream);
-  font-family: var(--ac-font-heading);
-  font-weight: var(--ac-font-weight-heading);
-  font-size: 15px;
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-small);
+  line-height: var(--type__font-heading-line);
   letter-spacing: 0.06em;
-  text-transform: uppercase;
+  text-transform: var(--type__button-capiliziation);
   cursor: pointer;
   transition: opacity 0.15s ease;
 }
@@ -836,17 +954,28 @@
 }
 .jc-bb-cta__price { font-variant-numeric: tabular-nums; }
 .jc-bb-reassure {
-  font-family: var(--ac-font-body);
-  font-size: 12px;
-  line-height: 1.4;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  line-height: var(--spacing__font-smaller);
   color: var(--jc-bb-muted);
   text-align: center;
-  margin-top: 10px;
+  margin-top: var(--jc-bb-space-xs);
+}
+
+/* Shop Pay / instalment messaging. Sits under the CTA, where a payment option
+   belongs, rather than splitting the price block in half. */
+.jc-bb-terms {
+  padding: 0 var(--jc-bb-gutter);
+  margin-top: var(--jc-bb-space-sm);
+  text-align: center;
 }
 
 /* --- Always-visible spec table --- */
 .jc-bb-specs {
-  padding: 22px 16px 0;
+  padding: 0 var(--jc-bb-gutter);
+  margin-top: var(--jc-bb-space-xl);
 }
 .jc-bb-specs__table {
   width: 100%;
@@ -856,14 +985,15 @@
 .jc-bb-specs__row:last-child { border-bottom: 1px solid var(--jc-bb-hairline-soft); }
 .jc-bb-specs__label,
 .jc-bb-specs__value {
-  font-family: var(--ac-font-body);
-  font-size: 13px;
-  line-height: 1.4;
-  padding: 10px 0;
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
+  padding: var(--jc-bb-space-xs) 0;
 }
 .jc-bb-specs__label {
   text-align: left;
-  font-weight: 400;
+  font-weight: var(--type__font-body-weight);
   color: var(--jc-bb-muted);
 }
 .jc-bb-specs__value {

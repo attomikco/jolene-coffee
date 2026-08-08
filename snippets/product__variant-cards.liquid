@@ -69,12 +69,14 @@
     }
   </style>
 
+  {% comment %}
+    Vertical spacing is left to the caller. The PDP buy box wraps this in
+    .jc-bb-sizes and drives the whole column off one rhythm scale; a second
+    per-block padding from templates/product.json on top of it is what made
+    STEP 1 sit cramped against the price block.
+  {% endcomment %}
   <div
     class="w-full px-4"
-    style="
-      padding-top:{{ block.settings.spacing_top }}px;
-      padding-bottom:{{ block.settings.spacing_bottom }}px;
-    "
     {{ block.shopify_attributes }}
   >
     {% comment %}

@@ -24,11 +24,7 @@
 
 {%- capture jc_initial_price %}{% render 'jc-initial-price', product: product %}{% endcapture -%}
 <div
-  class="jc-bb-priceblock w-full px-4"
-  style="
-    padding-top:{{ block.settings.spacing_top }}px;
-    padding-bottom:{{ block.settings.spacing_bottom }}px;
-  "
+  class="jc-bb-priceblock w-full"
   x-show="current_variant_exists"
   {{ block.shopify_attributes }}
 >
@@ -43,7 +39,7 @@
       {%- endcomment -%}
       <span
         class="jc-bb-price__main"
-        x-text="Shopify.formatMoney(jc_price)"
+        x-text="jcMoney(jc_price)"
       >{{ jc_initial_price | plus: 0 | money }}</span>
 
       {%- comment -%}
@@ -53,12 +49,12 @@
         stylesheet override.
       {%- endcomment -%}
       <template x-if="jc_compare_price > 0">
-        <s class="jc-bb-price__compare" x-text="Shopify.formatMoney(jc_compare_price)"></s>
+        <s class="jc-bb-price__compare" x-text="jcMoney(jc_compare_price)"></s>
       </template>
     </div>
 
     <div class="jc-bb-price__unitwrap" x-show="jc_unit_price > 0" x-cloak>
-      <span class="jc-bb-price__unit" x-text="Shopify.formatMoney(jc_unit_price)"></span>
+      <span class="jc-bb-price__unit" x-text="jcMoney(jc_unit_price)"></span>
       <span class="jc-bb-price__unit-label">per can</span>
     </div>
   </div>
@@ -72,7 +68,7 @@
     class="jc-bb-price__save"
     x-show="!jc_is_base_pack && jc_savings > 0"
     x-cloak
-    x-text="`You save ${Shopify.formatMoney(jc_savings)} versus buying ${jc_base_pack}-can packs`"
+    x-text="`You save ${jcMoney(jc_savings)} versus buying ${jc_base_pack}-can packs`"
   ></p>
 
   {%- comment -%}

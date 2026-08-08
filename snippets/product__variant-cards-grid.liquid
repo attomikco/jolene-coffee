@@ -263,17 +263,25 @@
       if card_variant and card_variant.compare_at_price and card_variant.compare_at_price > card_variant.price
         assign has_compare_at = true
       endif
+      #
+      # `savings_is_live` is true for every pack that CAN be compared, the
+      # baseline included. The baseline's label stays blank — it has nothing to
+      # save against — but the line is still rendered and bound, so all four
+      # tiles carry the same number of rows and their content aligns instead of
+      # the smallest pack floating a line short.
       assign savings_is_live = false
       if val_config and val_config.savings_label != blank
         assign savings_label = val_config.savings_label
-      elsif card_variant and pack_size > 0 and base_per_unit > 0 and pack_size != base_pack_size
+      elsif card_variant and pack_size > 0 and base_per_unit > 0
         assign savings_is_live = true
-        assign this_per_unit = card_variant.price | divided_by: pack_size
-        if this_per_unit < base_per_unit
-          assign per_unit_diff = base_per_unit | minus: this_per_unit
-          assign savings_pct = per_unit_diff | times: 100 | divided_by: base_per_unit
-          if savings_pct > 0
-            assign savings_label = 'save ' | append: savings_pct | append: '%'
+        if pack_size != base_pack_size
+          assign this_per_unit = card_variant.price | divided_by: pack_size
+          if this_per_unit < base_per_unit
+            assign per_unit_diff = base_per_unit | minus: this_per_unit
+            assign savings_pct = per_unit_diff | times: 100 | divided_by: base_per_unit
+            if savings_pct > 0
+              assign savings_label = 'save ' | append: savings_pct | append: '%'
+            endif
           endif
         endif
       endif
@@ -316,7 +324,6 @@
         {% endif %}
       "
       :disabled="product_loading"
-      title="{{ value }}"
     >
 
       {% if badge_text != blank %}
@@ -336,7 +343,7 @@
           style="
             font-size: {{ block.settings.name_font_size }}px;
             font-weight: {{ block.settings.name_font_weight }};
-            font-family: var(--type__font-heading-family, sans-serif);
+            font-family: var(--type__font-header-family, sans-serif);
           "
         >{{ value }}</div>
 
@@ -351,7 +358,7 @@
                   font-family: var(--type__font-body-family, sans-serif);
                   font-weight: 700;
                 "
-                x-text="Shopify.formatMoney(jcTilePrice({{ card_variant.id }}))"
+                x-text="jcMoney(jcTilePrice({{ card_variant.id }}))"
               >{{ card_variant.price | money }}</span>
               {% if has_compare_at %}
                 <span
@@ -370,7 +377,7 @@
               Shopify's auto unit_price (e.g. "$4.50/item") shown when the
               variant carries unit-pricing data. Renders below the main
               price. Format mirrors Shopify's standard:
-                "$35.99 USD - $4.50 USD/item"
+                "$35.99 - $4.50/item"
               Only renders when variant.unit_price is present — Shopify
               auto-omits for variants without unit pricing configured.
             {% endcomment %}
@@ -383,45 +390,32 @@
                   opacity: 0.65;
                   margin-top: 2px;
                 "
-              >{{ card_variant.price | money_with_currency }} - {{ card_variant.unit_price | money_with_currency }}/{{ card_variant.unit_price_measurement.reference_unit }}</div>
+              >{{ card_variant.price | money }} - {{ card_variant.unit_price | money }}/{{ card_variant.unit_price_measurement.reference_unit }}</div>
             {% endif %}
           {% endif %}
 
           {% comment %}
-            Per-unit rate and its saving share one line: they are read together
-            ("$2.75/can, save 38%") and keeping them on one row holds the card
-            to a predictable height.
+            Per-unit rate and its percentage sit on separate rows, and the
+            savings row is emitted even when it has nothing to say (a
+            non-breaking space holds it open). Sharing one wrapped row made the
+            smallest pack — the only one with no saving — a line shorter than
+            its neighbours, so its price sat at a different height.
           {% endcomment %}
           {% if block.settings.show_per_unit and per_unit_label != blank %}
-            <div style="display:flex;align-items:baseline;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:2px;">
-              <span
-                class="ac-vc-perunit"
-                style="
-                  font-size: {{ block.settings.price_font_size }}px;
-                  font-family: var(--type__font-body-family, sans-serif);
-                  margin-top: 0;
-                "
-                {% if per_unit_is_live %}
-                  x-text="`${Shopify.formatMoney(jcTileUnit({{ card_variant.id }}))}/can`"
-                {% endif %}
-              >{{ per_unit_label }}</span>
-              {% if savings_label != blank %}
-                <span
-                  class="ac-vc-savings"
-                  style="
-                    font-size: {{ block.settings.savings_font_size }}px;
-                    font-family: var(--type__font-body-family, sans-serif);
-                    font-weight: 700;
-                    margin-top: 0;
-                  "
-                  {% if savings_is_live %}
-                    x-show="jcTileSavePct({{ card_variant.id }}) > 0"
-                    x-text="`save ${jcTileSavePct({{ card_variant.id }})}%`"
-                  {% endif %}
-                >{{ savings_label }}</span>
+            <div
+              class="ac-vc-perunit"
+              style="
+                font-size: {{ block.settings.price_font_size }}px;
+                font-family: var(--type__font-body-family, sans-serif);
+                margin-top: 2px;
+              "
+              {% if per_unit_is_live %}
+                x-text="`${jcMoney(jcTileUnit({{ card_variant.id }}))}/can`"
               {% endif %}
-            </div>
-          {% elsif savings_label != blank %}
+            >{{ per_unit_label }}</div>
+          {% endif %}
+
+          {% if savings_is_live or savings_label != blank %}
             <div
               class="ac-vc-savings"
               style="
@@ -430,7 +424,10 @@
                 font-weight: 700;
                 margin-top: 2px;
               "
-            >{{ savings_label }}</div>
+              {% if savings_is_live %}
+                x-text="jcTileSavePct({{ card_variant.id }}) > 0 ? `save ${jcTileSavePct({{ card_variant.id }})}%` : '\u00A0'"
+              {% endif %}
+            >{% if savings_label != blank %}{{ savings_label }}{% else %}&nbsp;{% endif %}</div>
           {% endif %}
 
         {% else %}

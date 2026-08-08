@@ -52,7 +52,7 @@
         <span class="jc-bb-plan__right">
           <span
             class="jc-bb-plan__price"
-            x-text="Shopify.formatMoney(jc_selected_price)"
+            x-text="jcMoney(jc_selected_price)"
           >{{ jc_initial_price | plus: 0 | money }}</span>
         </span>
       </button>
@@ -78,11 +78,11 @@
               <span class="jc-bb-plan__sub" x-text="`${jc_sub_freq_label} &middot; skip or cancel anytime`"></span>
             </span>
             <span class="jc-bb-plan__right">
-              <span class="jc-bb-plan__price" x-text="Shopify.formatMoney(jc_sub_price)"></span>
+              <span class="jc-bb-plan__price" x-text="jcMoney(jc_sub_price)"></span>
               <span
                 class="jc-bb-plan__delta"
                 x-show="jc_sub_delta > 0"
-                x-text="`save ${Shopify.formatMoney(jc_sub_delta)} per order`"
+                x-text="`save ${jcMoney(jc_sub_delta)} per order`"
               ></span>
             </span>
           </button>

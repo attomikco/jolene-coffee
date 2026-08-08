@@ -11,6 +11,33 @@
   - Multiple product templates can be created from the theme editor.
 {% endcomment %}
 
+{% comment %}
+  Review rating row.
+
+  Klaviyo renders the average-rating app block client-side, so there is no count
+  to test in Liquid and no reviews metafield to read either — the `reviews`
+  namespace is empty on these products. The row therefore starts collapsed and
+  reveals itself only once the widget has injected a rating that is not zero.
+  Starting collapsed rather than visible is deliberate: the zero case is the
+  common one today, and this way it costs no layout shift, while a real rating
+  still appears as soon as it arrives.
+{% endcomment %}
+{% capture jc_rating_attrs %}
+  class="jc-bb-rating"
+  x-data="{ jc_rating_empty: true }"
+  :class="{ 'jc-bb-rating--empty': jc_rating_empty }"
+  x-init="
+    const jcCheckRating = () => {
+      const t = ($el.textContent || '').replace(/\s+/g, ' ').trim();
+      jc_rating_empty = t === ''
+        || /(^|[^0-9.])0(\.0+)?\s*(review|rating)/i.test(t)
+        || /^no\s+(review|rating)/i.test(t);
+    };
+    jcCheckRating();
+    new MutationObserver(jcCheckRating).observe($el, { childList: true, subtree: true, characterData: true });
+  "
+{% endcapture %}
+
 {% comment %} Create product script, assign correct gallery style, set column widths {% endcomment %}
 {% liquid
   capture script_product
@@ -201,17 +228,10 @@
                       rate right, and the savings sentence beneath. It reflects
                       the selected size and plan together.
 
-                      payment_terms stays here rather than moving into the
-                      snippet: it needs the `form` object from the enclosing
-                      {% form 'product' %}, which {% render %} does not pass into
-                      a snippet's scope.
+                      Instalment messaging used to follow this block and broke it
+                      in half; it now renders under the CTA.
                     {% endcomment %}
                     {% render 'jc-buybox-price', block: block %}
-                    <div class="type--small mt-1 px-4" x-show="current_variant_exists">
-                      {% # theme-check-disable UndefinedObject %}
-                      {{ form | payment_terms }}
-                      {% # theme-check-enable UndefinedObject %}
-                    </div>
 
                   {% when 'custom' %}
                     {% render 'product__custom-field', block: block %}
@@ -290,12 +310,22 @@
                         {{ block.settings.color_border }}
                         {{ block.settings.style_border }}
                       "
-                      style="
-                        padding-top:{{ block.settings.spacing_top }}px;
-                        padding-bottom:{{ block.settings.spacing_bottom }}px;
-                      "
                     >
                       {% render 'jc-buybox-cta', block: block, is_mobile_column: true %}
+                      {% comment %}
+                        Instalment messaging belongs under the CTA, with the
+                        other payment information. It used to sit directly below
+                        the savings line, splitting the price block in two on
+                        its way past. It stays in the section rather than moving
+                        into a snippet because payment_terms needs the `form`
+                        object from the enclosing {% form 'product' %}, which
+                        {% render %} does not pass into a snippet's scope.
+                      {% endcomment %}
+                      <div class="jc-bb-terms type--small">
+                        {% # theme-check-disable UndefinedObject %}
+                        {{ form | payment_terms }}
+                        {% # theme-check-enable UndefinedObject %}
+                      </div>
                       {% render 'jc-buybox-specs' %}
                       {% if block.settings.enable_dynamic_checkout %}
                         <div
@@ -333,7 +363,17 @@
                     {% render 'jc-buybox-plans', id_suffix: '-m' %}
 
                   {% when 'perks' %}
-                    {% render 'product-perks-marquee', block: block %}
+                    {% comment %}
+                      The marquee track is sized `width: fit-content`, so it is
+                      wider than the column by design. The buy column is a flex
+                      container and its items default to min-width:auto, which
+                      means an over-wide item refuses to shrink and pushes past
+                      the right edge instead of being clipped. .jc-bb-perks is
+                      the containing block that stops it.
+                    {% endcomment %}
+                    <div class="jc-bb-perks">
+                      {% render 'product-perks-marquee', block: block %}
+                    </div>
 
                   {% when 'badge' %}
                     {% comment %}
@@ -366,7 +406,11 @@
                       block from another without editing templates/product.json.
                     {% endcomment %}
                     {% unless block.id contains 'paywhirl' %}
-                      <div class="p-4">{% render block %}</div>
+                      {% if block.id contains 'rating' %}
+                        <div {{ jc_rating_attrs }}>{% render block %}</div>
+                      {% else %}
+                        <div class="p-4">{% render block %}</div>
+                      {% endif %}
                     {% endunless %}
                 {% endcase %}
               </div>
@@ -438,17 +482,10 @@
                           rate right, and the savings sentence beneath. It reflects
                           the selected size and plan together.
 
-                          payment_terms stays here rather than moving into the
-                          snippet: it needs the `form` object from the enclosing
-                          {% form 'product' %}, which {% render %} does not pass into
-                          a snippet's scope.
+                          Instalment messaging used to follow this block and broke it
+                          in half; it now renders under the CTA.
                         {% endcomment %}
                         {% render 'jc-buybox-price', block: block %}
-                        <div class="type--small mt-1 px-4" x-show="current_variant_exists">
-                          {% # theme-check-disable UndefinedObject %}
-                          {{ form | payment_terms }}
-                          {% # theme-check-enable UndefinedObject %}
-                        </div>
 
                       {% when 'custom' %}
                         {% render 'product__custom-field', block: block %}
@@ -527,12 +564,13 @@
                             {{ block.settings.color_border }}
                             {{ block.settings.style_border }}
                           "
-                          style="
-                            padding-top:{{ block.settings.spacing_top }}px;
-                            padding-bottom:{{ block.settings.spacing_bottom }}px;
-                          "
                         >
                           {% render 'jc-buybox-cta', block: block %}
+                          <div class="jc-bb-terms type--small">
+                            {% # theme-check-disable UndefinedObject %}
+                            {{ form | payment_terms }}
+                            {% # theme-check-enable UndefinedObject %}
+                          </div>
                           {% render 'jc-buybox-specs' %}
                           {% if block.settings.enable_dynamic_checkout %}
                             <div
@@ -559,7 +597,11 @@
                       {% when '@app' %}
                         {% if settings.app_block_column == 'left_column' %}
                           {% unless block.id contains 'paywhirl' %}
-                            <div class="p-4">{% render block %}</div>
+                            {% if block.id contains 'rating' %}
+                              <div {{ jc_rating_attrs }}>{% render block %}</div>
+                            {% else %}
+                              <div class="p-4">{% render block %}</div>
+                            {% endif %}
                           {% endunless %}
                         {% endif %}
                     {% endcase %}
@@ -633,17 +675,10 @@
                           rate right, and the savings sentence beneath. It reflects
                           the selected size and plan together.
 
-                          payment_terms stays here rather than moving into the
-                          snippet: it needs the `form` object from the enclosing
-                          {% form 'product' %}, which {% render %} does not pass into
-                          a snippet's scope.
+                          Instalment messaging used to follow this block and broke it
+                          in half; it now renders under the CTA.
                         {% endcomment %}
                         {% render 'jc-buybox-price', block: block %}
-                        <div class="type--small mt-1 px-4" x-show="current_variant_exists">
-                          {% # theme-check-disable UndefinedObject %}
-                          {{ form | payment_terms }}
-                          {% # theme-check-enable UndefinedObject %}
-                        </div>
 
                       {% when 'custom' %}
                         {% render 'product__custom-field', block: block %}
@@ -715,12 +750,13 @@
                             {{ block.settings.color_border }}
                             {{ block.settings.style_border }}
                           "
-                          style="
-                            padding-top:{{ block.settings.spacing_top }}px;
-                            padding-bottom:{{ block.settings.spacing_bottom }}px;
-                          "
                         >
                           {% render 'jc-buybox-cta', block: block %}
+                          <div class="jc-bb-terms type--small">
+                            {% # theme-check-disable UndefinedObject %}
+                            {{ form | payment_terms }}
+                            {% # theme-check-enable UndefinedObject %}
+                          </div>
                           {% render 'jc-buybox-specs' %}
                           {% if block.settings.enable_dynamic_checkout %}
                             <div
@@ -749,7 +785,17 @@
                         {% render 'jc-buybox-plans' %}
 
                       {% when 'perks' %}
-                        {% render 'product-perks-marquee', block: block %}
+                        {% comment %}
+                          The marquee track is sized `width: fit-content`, so it is
+                          wider than the column by design. The buy column is a flex
+                          container and its items default to min-width:auto, which
+                          means an over-wide item refuses to shrink and pushes past
+                          the right edge instead of being clipped. .jc-bb-perks is
+                          the containing block that stops it.
+                        {% endcomment %}
+                        <div class="jc-bb-perks">
+                          {% render 'product-perks-marquee', block: block %}
+                        </div>
 
                       {% when 'badge' %}
                         {% comment %}
@@ -774,7 +820,11 @@
                         {% comment %} PayWhirl's own selector is replaced by jc-buybox-plans. {% endcomment %}
                         {% if settings.app_block_column == 'right_column' %}
                           {% unless block.id contains 'paywhirl' %}
-                            <div class="p-4">{% render block %}</div>
+                            {% if block.id contains 'rating' %}
+                              <div {{ jc_rating_attrs }}>{% render block %}</div>
+                            {% else %}
+                              <div class="p-4">{% render block %}</div>
+                            {% endif %}
                           {% endunless %}
                         {% endif %}
                     {% endcase %}

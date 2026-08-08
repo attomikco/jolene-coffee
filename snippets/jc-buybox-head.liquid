@@ -26,27 +26,45 @@
   assign jc_size = f[1] | strip
   assign jc_flavor = f[2] | strip
   assign jc_chips = f[3] | split: '¦'
+  assign jc_caffeine = f[4] | strip
   assign jc_bullets = f[9] | split: '¦'
+
+  # === EYEBROW ===
+  # It used to be the descriptive half of the title, which on every product is
+  # a verbatim repeat of the H1 directly beneath it — "HAZELNUT OAT MILK LATTE"
+  # over "Jolene Blue: Hazelnut Oat Milk Latte" told the shopper nothing twice.
+  # It now carries the two facts the title cannot: how much is in the can, and
+  # how much caffeine. Both are already parsed off the nutrition panel.
+  #
+  # A product with no panel (the variety pack) falls back to the type label,
+  # and only when the title does not already contain it — otherwise the eyebrow
+  # is dropped rather than reinstated as a duplicate.
+  assign jc_eyebrow = ''
+  if jc_size != blank and jc_caffeine != blank
+    assign jc_eyebrow = jc_size | append: ' · ' | append: jc_caffeine | append: ' caffeine'
+  elsif jc_size != blank
+    assign jc_eyebrow = jc_size
+  elsif jc_caffeine != blank
+    assign jc_eyebrow = jc_caffeine | append: ' caffeine'
+  elsif jc_type != blank
+    unless product.title contains jc_type
+      assign jc_eyebrow = jc_type
+    endunless
+  endif
 -%}
 
+{%- comment -%}
+  Spacing comes from the column's own scale in attomik-custom.css, not from
+  block.settings.spacing_top/bottom. Those settings live in
+  templates/product.json and were set per block with no shared rhythm, which is
+  what left a dead gap under the bullets and jammed STEP 1 against the price.
+{%- endcomment -%}
 <div
-  class="jc-bb-head w-full px-4"
-  style="
-    padding-top:{{ block.settings.spacing_top }}px;
-    padding-bottom:{{ block.settings.spacing_bottom }}px;
-  "
+  class="jc-bb-head w-full"
   {{ block.shopify_attributes }}
 >
-  {%- comment -%}
-    Eyebrow. The descriptive half of the title rather than product.type, which
-    is "Coffee" on every product here and so tells the shopper nothing. Size
-    comes from the volume line of the nutrition panel.
-  {%- endcomment -%}
-  {% if jc_type != blank %}
-    <span class="jc-bb-eyebrow">
-      {{- jc_type -}}
-      {%- if jc_size != blank %} &middot; {{ jc_size }}{% endif -%}
-    </span>
+  {% if jc_eyebrow != blank %}
+    <span class="jc-bb-eyebrow">{{ jc_eyebrow }}</span>
   {% endif %}
 
   <h1 class="jc-bb-title">{{ product.title }}</h1>
