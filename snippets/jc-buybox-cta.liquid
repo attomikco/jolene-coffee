@@ -51,7 +51,7 @@
     <span aria-hidden="true" style="margin:0 0.5em;">&middot;</span>
     <span
       class="jc-bb-cta__price"
-      x-text="Shopify.formatMoney(jc_price * quantity)"
+      x-text="jcMoney(jc_price * quantity)"
     >{{ jc_initial_price | plus: 0 | money }}</span>
   </button>
 
@@ -112,7 +112,7 @@
     >
       <span>Add to cart</span>
       <span aria-hidden="true" style="margin:0 0.5em;">&middot;</span>
-      <span class="jc-bb-cta__price" x-text="Shopify.formatMoney(jc_price * quantity)"></span>
+      <span class="jc-bb-cta__price" x-text="jcMoney(jc_price * quantity)"></span>
     </button>
   </div>
 {% endif %}

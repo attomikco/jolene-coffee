@@ -151,6 +151,39 @@
     the column is derived from this one, which is what keeps a discounted hero
     price from ever appearing next to undiscounted per-can rates.
   {%- endcomment -%}
+  {%- comment -%}
+    Money formatting for the whole buy box. Every binding goes through this
+    rather than calling Shopify.formatMoney directly.
+
+    WHY THE ARGUMENT IS `false`. Two things are inverted in the theme and they
+    cancel each other out. snippets/theme__scripts.liquid assigns:
+
+      price_format_with_currency:    '{{ shop.money_format }}'               -> $17.99
+      price_format_without_currency: '{{ shop.money_with_currency_format }}' -> $17.99 USD
+
+    and formatMoney in assets/main-*.js consumes them backwards to match:
+
+      formatString = enableCurrency === false ? withCurrency : withoutCurrency
+
+    So the theme's default output is correct — settings.enable_currency is true
+    and the currency code shows — it is only the NAMES that are wrong, on both
+    sides. Straightening one side alone inverts the setting's meaning, and the
+    other side is a compiled bundle with no source in this repo, so neither is
+    a fix worth making. The comment at theme__scripts.liquid:128 records this.
+
+    That leaves asking for the format we want at the call site. Passing false
+    selects price_format_with_currency, which despite its name is the string
+    that omits the currency code — "$17.99", which is what this column wants
+    everywhere: hero price, per-can rate, tiles, plan rows, CTA and savings.
+
+    Scope is deliberate. This is a buy-box preference, not a claim about how the
+    rest of the site should print money; the cart drawer and product grids keep
+    the theme's default.
+  {%- endcomment -%}
+  jcMoney(cents) {
+    return Shopify.formatMoney(cents, false);
+  },
+
   jcEffective(v) {
     if (!v) return 0;
     if (this.jc_plan_id) {
