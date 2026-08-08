@@ -24,6 +24,7 @@
     {% render 'jc-buybox-cta', block: block, is_mobile_column: true %}
 {% endcomment %}
 
+{%- capture jc_initial_price %}{% render 'jc-initial-price', product: product %}{% endcapture -%}
 <div
   {% if is_mobile_column %}
     id="product-add"
@@ -51,7 +52,7 @@
     <span
       class="jc-bb-cta__price"
       x-text="Shopify.formatMoney(jc_price * quantity)"
-    >{{ product.selected_or_first_available_variant.price | money }}</span>
+    >{{ jc_initial_price | plus: 0 | money }}</span>
   </button>
 
   <button

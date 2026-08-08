@@ -29,6 +29,7 @@
     {% render 'jc-buybox-plans', id_suffix: '-m' %}
 {% endcomment %}
 
+{%- capture jc_initial_price %}{% render 'jc-initial-price', product: product %}{% endcapture -%}
 {% if product.selling_plan_groups.size > 0 %}
   <div class="jc-bb-plansblock w-full" style="padding-top:20px;">
     <span class="jc-bb-step">Step 2 &middot; How often</span>
@@ -52,7 +53,7 @@
           <span
             class="jc-bb-plan__price"
             x-text="Shopify.formatMoney(jc_selected_price)"
-          >{{ product.selected_or_first_available_variant.price | money }}</span>
+          >{{ jc_initial_price | plus: 0 | money }}</span>
         </span>
       </button>
 

@@ -22,6 +22,7 @@
     {% render 'jc-buybox-price', block: block %}
 {% endcomment %}
 
+{%- capture jc_initial_price %}{% render 'jc-initial-price', product: product %}{% endcapture -%}
 <div
   class="jc-bb-priceblock w-full px-4"
   style="
@@ -36,13 +37,14 @@
   <div class="jc-bb-price__top">
     <div>
       {%- comment -%}
-        Server-rendered price is the first available variant's, so the block is
-        never blank before Alpine hydrates; x-text takes over on first paint.
+        The server-rendered figure is the pack the tiles pre-select, not the
+        first available variant — see jc-initial-price.liquid. x-text takes over
+        on first paint and lands on the same number, so nothing flashes.
       {%- endcomment -%}
       <span
         class="jc-bb-price__main"
         x-text="Shopify.formatMoney(jc_price)"
-      >{{ product.selected_or_first_available_variant.price | money }}</span>
+      >{{ jc_initial_price | plus: 0 | money }}</span>
 
       {%- comment -%}
         Real compare_at_price only. x-if rather than x-show so the <s> element

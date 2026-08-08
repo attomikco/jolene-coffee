@@ -1,0 +1,44 @@
+{%- comment -%}
+  snippets/jc-initial-price.liquid
+
+  Emits DATA — the price in cents of the variant the shopper will actually be
+  looking at on first paint. No HTML comment banner, for the same reason as the
+  other jc-* data snippets.
+
+  WHY THIS IS NOT selected_or_first_available_variant.price
+  product__variant-cards-grid.liquid pre-selects the middle value of the first
+  option on load (its x-init "popular" pick) whenever that option carries more
+  than two values. On Blue that is the 12-can at $35.99, while
+  selected_or_first_available_variant is the 4-can at $17.99. Rendering the
+  latter server-side puts $17.99 on screen until Alpine's $nextTick corrects it
+  — a price flash on load, for a pack that is not the one selected.
+
+  So the server-rendered fallbacks mirror that pre-selection. This is the one
+  place the rule is duplicated; the condition below is deliberately the same
+  shape as the x-init guard in product__variant-cards-grid.liquid
+  (`is_first_option and popular_variant and variant_count > 2`), and when no
+  matching variant is found it falls back exactly as that guard does.
+
+  Accepts:
+  - product: {object}
+
+  Usage:
+    {%- capture jc_initial_price %}{% render 'jc-initial-price', product: product %}{% endcapture -%}
+    {{ jc_initial_price | plus: 0 | money }}
+{%- endcomment -%}
+{%- liquid
+  assign initial_variant = product.selected_or_first_available_variant
+
+  assign first_option = product.options_with_values.first
+  if first_option and first_option.values.size > 2
+    assign popular_index = first_option.values.size | minus: 1 | divided_by: 2
+    assign popular_value = first_option.values[popular_index] | strip
+    for v in product.variants
+      if v.options.first == popular_value
+        assign initial_variant = v
+        break
+      endif
+    endfor
+  endif
+-%}
+{{- initial_variant.price -}}
