@@ -238,6 +238,11 @@
   row-gap: 16px;
   padding-top: 16px;
   grid-template-columns: repeat(2, 1fr);
+  /* Every row as tall as the tallest card, so a card carrying an extra line
+     (savings, or the free-shipping gap) doesn't leave the 2x2 grid ragged.
+     All rows here are implicit — only columns are templated — so this applies
+     to the whole grid. Cards already stretch via align-items on the element. */
+  grid-auto-rows: 1fr;
 }
 .ac-vc-card {
   /* Background + foreground come from the Shopify color-scheme class the
@@ -339,6 +344,12 @@
   font-size: 12px;
   text-align: center;
   margin-top: 4px;
+}
+/* The "$24 away from free shipping" state. Same slot and size as the earned
+   "Ships Free" line, held back a little so clearing the threshold still reads
+   as the stronger signal. */
+.ac-vc-shipping--gap {
+  opacity: 0.65;
 }
 
 /* --- SHARED UTILITIES --- */

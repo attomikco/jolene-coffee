@@ -37,6 +37,41 @@
       break
     endif
   endfor
+
+  # === PER-UNIT BASELINE ===
+  # Pack size comes from the leading integer of the option value label
+  # ("24 Cans" -> 24) — the same idiom product-checklist.liquid uses on variant
+  # titles for its value-prop line. `plus: 0` makes a non-numeric label
+  # ("Small") resolve to 0, which switches off every per-unit figure below
+  # instead of dividing by zero.
+  #
+  # The baseline is the SMALLEST pack on this option, so "save N%" compares
+  # per-unit rates rather than pack totals. Derived from live variant prices —
+  # nothing here is hardcoded, and a price change re-derives it on next render.
+  assign base_pack_size = 0
+  assign base_per_unit = 0
+  for bv in card_option.values
+    assign bv_pack = bv | split: ' ' | first | plus: 0
+    if bv_pack > 0
+      assign bv_is_smaller = false
+      if base_pack_size == 0
+        assign bv_is_smaller = true
+      elsif bv_pack < base_pack_size
+        assign bv_is_smaller = true
+      endif
+      if bv_is_smaller
+        assign bv_encoded = bv | replace: ' ', '+' | base64_encode
+        for v in product.variants
+          assign v_opt_encoded = v.options[option_index] | replace: ' ', '+' | base64_encode
+          if v_opt_encoded == bv_encoded
+            assign base_pack_size = bv_pack
+            assign base_per_unit = v.price | divided_by: bv_pack
+            break
+          endif
+        endfor
+      endif
+    endif
+  endfor
 -%}
 
 {% comment %} Option label — sits above this option's card grid {% endcomment %}
@@ -130,19 +165,19 @@
 
       # === BADGE ===
       # Precedence (highest to lowest):
-      #   1. Ships Free triggered → ships_free_color_scheme
-      #   2. Per-product metafield (val_config.badge):
+      #   1. Per-product metafield (val_config.badge):
       #        - badge_color == 'secondary' → popular_color_scheme
       #        - else → best_value_color_scheme
-      #   3. Auto-heuristic by position:
+      #   2. Auto-heuristic by position:
       #        - middle index, not first/last → "Popular" + popular_color_scheme
       #        - last index, count > 1 → "Best Value" + best_value_color_scheme
+      #
+      # "Ships Free" is deliberately NOT a badge: it already renders as a line
+      # inside the card, and as a badge it outranked Popular/Best Value on every
+      # pack over the threshold, which suppressed them entirely.
       assign badge_text = ''
       assign badge_scheme = ''
-      if option_available and show_free_shipping
-        assign badge_text = 'Ships Free'
-        assign badge_scheme = block.settings.ships_free_color_scheme
-      elsif val_config and val_config.badge != blank
+      if val_config and val_config.badge != blank
         assign badge_text = val_config.badge
         if val_config.badge_color == 'secondary'
           assign badge_scheme = block.settings.popular_color_scheme
@@ -197,12 +232,24 @@
         assign badge_scheme_strong = badge_scheme_strong | strip
       endif
 
+      # === PER-UNIT PRICE ===
+      # Divided in cents so it always rounds down — $35.99 / 12 = $2.99, never
+      # a rounded-up $3.00 we don't actually charge. Falls back to the metafield
+      # label when a per-value config supplies one.
+      assign pack_size = value | split: ' ' | first | plus: 0
       assign per_unit_label = ''
       if val_config and val_config.per_unit_label != blank
         assign per_unit_label = val_config.per_unit_label
+      elsif card_variant and pack_size > 0
+        assign per_unit_cents = card_variant.price | divided_by: pack_size
+        assign per_unit_label = per_unit_cents | money | append: '/can'
       endif
 
-      assign savings_pct = 0
+      # === SAVINGS ===
+      # Against the smallest pack's per-unit rate, not compare-at: these packs
+      # have no compare_at_price, and comparing pack totals would never show a
+      # saving because a bigger pack always costs more in absolute terms.
+      # Suppressed on the smallest pack itself (it is the baseline).
       assign savings_label = ''
       assign has_compare_at = false
       if card_variant and card_variant.compare_at_price and card_variant.compare_at_price > card_variant.price
@@ -210,18 +257,26 @@
       endif
       if val_config and val_config.savings_label != blank
         assign savings_label = val_config.savings_label
-      elsif card_variant
-        if has_compare_at
-          assign base_price = card_variant.compare_at_price
-        else
-          assign base_price = first_variant_price
-        endif
-        if base_price and base_price > 0 and base_price > card_variant.price
-          assign price_diff = base_price | minus: card_variant.price
-          assign savings_pct = price_diff | times: 100 | divided_by: base_price
+      elsif card_variant and pack_size > 0 and base_per_unit > 0 and pack_size != base_pack_size
+        assign this_per_unit = card_variant.price | divided_by: pack_size
+        if this_per_unit < base_per_unit
+          assign per_unit_diff = base_per_unit | minus: this_per_unit
+          assign savings_pct = per_unit_diff | times: 100 | divided_by: base_per_unit
           if savings_pct > 0
-            assign savings_label = 'SAVE ' | append: savings_pct | append: '%'
+            assign savings_label = 'save ' | append: savings_pct | append: '%'
           endif
+        endif
+      endif
+
+      # === FREE SHIPPING GAP ===
+      # Cards at or above the threshold say so; cards below say how far off they
+      # are, which is the more useful number on the packs that miss out. Whole
+      # dollars, rounded down by the integer divide.
+      assign fs_gap_label = ''
+      if option_available and show_free_shipping == false and fs_threshold_cents > 0 and card_variant
+        assign fs_gap_cents = fs_threshold_cents | minus: card_variant.price
+        if fs_gap_cents > 0
+          assign fs_gap_label = fs_gap_cents | divided_by: 100 | prepend: '$' | append: ' away from free shipping'
         endif
       endif
     -%}
@@ -326,18 +381,34 @@
             {% endif %}
           {% endif %}
 
+          {% comment %}
+            Per-unit rate and its saving share one line: they are read together
+            ("$2.75/can, save 38%") and keeping them on one row holds the card
+            to a predictable height.
+          {% endcomment %}
           {% if block.settings.show_per_unit and per_unit_label != blank %}
-            <div
-              class="ac-vc-perunit"
-              style="
-                font-size: {{ block.settings.price_font_size }}px;
-                font-family: var(--type__font-body-family, sans-serif);
-                margin-top: 2px;
-              "
-            >{{ per_unit_label }}</div>
-          {% endif %}
-
-          {% if savings_label != blank %}
+            <div style="display:flex;align-items:baseline;justify-content:center;gap:5px;flex-wrap:wrap;margin-top:2px;">
+              <span
+                class="ac-vc-perunit"
+                style="
+                  font-size: {{ block.settings.price_font_size }}px;
+                  font-family: var(--type__font-body-family, sans-serif);
+                  margin-top: 0;
+                "
+              >{{ per_unit_label }}</span>
+              {% if savings_label != blank %}
+                <span
+                  class="ac-vc-savings"
+                  style="
+                    font-size: {{ block.settings.savings_font_size }}px;
+                    font-family: var(--type__font-body-family, sans-serif);
+                    font-weight: 700;
+                    margin-top: 0;
+                  "
+                >{{ savings_label }}</span>
+              {% endif %}
+            </div>
+          {% elsif savings_label != blank %}
             <div
               class="ac-vc-savings"
               style="
@@ -349,6 +420,11 @@
             >{{ savings_label }}</div>
           {% endif %}
 
+          {% comment %}
+            One shipping line either way: cleared the threshold, or how much is
+            left to clear it. Both states occupy the same slot so cards keep the
+            same number of rows.
+          {% endcomment %}
           {% if show_free_shipping %}
             <div
               class="ac-vc-shipping"
@@ -358,6 +434,15 @@
                 margin-top: 2px;
               "
             >🚚 Ships Free</div>
+          {% elsif fs_gap_label != blank %}
+            <div
+              class="ac-vc-shipping ac-vc-shipping--gap"
+              style="
+                font-size: {{ block.settings.shipping_font_size }}px;
+                font-family: var(--type__font-body-family, sans-serif);
+                margin-top: 2px;
+              "
+            >{{ fs_gap_label }}</div>
           {% endif %}
 
         {% else %}
