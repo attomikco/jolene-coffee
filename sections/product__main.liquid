@@ -185,30 +185,32 @@
                     {% render 'product__breadcrumb', block: block %}
 
                   {% when 'title' %}
-                    {% render 'product__title', block: block %}
+                    {% comment %}
+                      The title block position now carries the whole head of the
+                      buy column — eyebrow, title, flavor line, certification
+                      chips and the per-product bullets. product__title itself is
+                      not rendered: its vendor / SKU / savings-badge furniture is
+                      not part of this design.
+                    {% endcomment %}
+                    {% render 'jc-buybox-head', block: block %}
 
                   {% when 'price' %}
-                    <div
-                      class="
-                        px-4
-                        {{ block.settings.color_scheme }}
-                        {{ block.settings.color_border }}
-                        {{ block.settings.style_border }}
-                      "
-                      style="
-                        padding-top:{{ block.settings.spacing_top }}px;
-                        padding-bottom:{{ block.settings.spacing_bottom }}px;
-                      "
-                      x-show="current_variant_exists"
-                    >
-                      <div class="relative flex items-end justify-between">
-                        {% render 'product__price', block: block %}
-                      </div>
-                      <div class="type--small mt-1">
-                        {% # theme-check-disable UndefinedObject %}
-                        {{ form | payment_terms }}
-                        {% # theme-check-enable UndefinedObject %}
-                      </div>
+                    {% comment %}
+                      The price block position keeps its place in the block order
+                      but now renders the hero price: large price left, per-can
+                      rate right, and the savings sentence beneath. It reflects
+                      the selected size and plan together.
+
+                      payment_terms stays here rather than moving into the
+                      snippet: it needs the `form` object from the enclosing
+                      {% form 'product' %}, which {% render %} does not pass into
+                      a snippet's scope.
+                    {% endcomment %}
+                    {% render 'jc-buybox-price', block: block %}
+                    <div class="type--small mt-1 px-4" x-show="current_variant_exists">
+                      {% # theme-check-disable UndefinedObject %}
+                      {{ form | payment_terms }}
+                      {% # theme-check-enable UndefinedObject %}
                     </div>
 
                   {% when 'custom' %}
@@ -218,7 +220,7 @@
                     {% render 'product__text', block: block %}
 
                   {% when 'description' %}
-                    {% render 'product__description', block: block %}
+                    {% render 'product__description', block: block, strip_specs: true %}
 
                   {% when 'accordion' %}
                     {% render 'product__accordion', block: block %}
@@ -239,7 +241,13 @@
                     {% render 'product__liquid', block: block %}
 
                   {% when 'upsell' %}
-                    {% render 'product__upsell', block: block %}
+                    {% comment %}
+                      "You may also like" leaves the buy column. The product
+                      template already ends with a full-width product-slider
+                      section under the same heading, so the recommendations are
+                      merged into that rather than duplicated in a narrow stack
+                      halfway up the column.
+                    {% endcomment %}
 
                   {% when 'options' %}
                     {% assign has_variant_cards = false %}
@@ -287,7 +295,8 @@
                         padding-bottom:{{ block.settings.spacing_bottom }}px;
                       "
                     >
-                      {% render 'product__add', block: block %}
+                      {% render 'jc-buybox-cta', block: block, is_mobile_column: true %}
+                      {% render 'jc-buybox-specs' %}
                       {% if block.settings.enable_dynamic_checkout %}
                         <div
                           class="color__inherit mt-4 px-4"
@@ -311,19 +320,54 @@
                     {% render 'product__bundle', block: block %}
 
                   {% when 'variant_cards' %}
-                    {% render 'product__variant-cards', block: block %}
+                    {% comment %}
+                      Steps 1 and 2 of the buy flow, in order. The plan rows are
+                      anchored here rather than to the PayWhirl app block
+                      because an app block's column is a merchant setting
+                      (settings.app_block_column) — the variant_cards block is
+                      forced into the buy column by this section, so hanging the
+                      plans off it keeps them beside the sizes whatever that
+                      setting says.
+                    {% endcomment %}
+                    {% render 'jc-buybox-sizes', block: block %}
+                    {% render 'jc-buybox-plans', id_suffix: '-m' %}
 
                   {% when 'perks' %}
                     {% render 'product-perks-marquee', block: block %}
 
                   {% when 'badge' %}
-                    {% render 'product-badge', block: block %}
+                    {% comment %}
+                      The "PREMIUM INGREDIENTS" pill leaves the column. It sat
+                      above the price making an unfalsifiable claim, and it is
+                      the certification chips in the head block that carry the
+                      ingredient argument now, with sources.
+                    {% endcomment %}
 
                   {% when 'checklist' %}
-                    {% render 'product-checklist', block: block %}
+                    {% comment %}
+                      The five-item checklist and its "BEST VALUE · 24 cans"
+                      banner both leave the column. The checklist was identical
+                      on all five flavors; the banner promoted a pack the
+                      shopper had not selected, from above the price. What was
+                      useful in them is now the chips and bullets in the head
+                      block and the savings sentence in the price block, both of
+                      which follow the actual selection.
+                    {% endcomment %}
 
                   {% when '@app' %}
-                    <div class="p-4">{% render block %}</div>
+                    {% comment %}
+                      PayWhirl's plan selector is suppressed: its rows are
+                      replaced by jc-buybox-plans, which posts the same Shopify
+                      selling plan ids the app created. The subscription wiring
+                      is untouched — only the widget's own UI is.
+
+                      block.type is "@app" for every app block, so the block key
+                      from the template is the only handle that tells one app
+                      block from another without editing templates/product.json.
+                    {% endcomment %}
+                    {% unless block.id contains 'paywhirl' %}
+                      <div class="p-4">{% render block %}</div>
+                    {% endunless %}
                 {% endcase %}
               </div>
             {% endunless %}
@@ -378,30 +422,32 @@
                         {% render 'product__breadcrumb', block: block %}
 
                       {% when 'title' %}
-                        {% render 'product__title', block: block %}
+                        {% comment %}
+                          The title block position now carries the whole head of the
+                          buy column — eyebrow, title, flavor line, certification
+                          chips and the per-product bullets. product__title itself is
+                          not rendered: its vendor / SKU / savings-badge furniture is
+                          not part of this design.
+                        {% endcomment %}
+                        {% render 'jc-buybox-head', block: block %}
 
                       {% when 'price' %}
-                        <div
-                          class="
-                            px-4
-                            {{ block.settings.color_scheme }}
-                            {{ block.settings.color_border }}
-                            {{ block.settings.style_border }}
-                          "
-                          style="
-                            padding-top:{{ block.settings.spacing_top }}px;
-                            padding-bottom:{{ block.settings.spacing_bottom }}px;
-                          "
-                          x-show="current_variant_exists"
-                        >
-                          <div class="relative flex items-end justify-between">
-                            {% render 'product__price', block: block %}
-                          </div>
-                          <div class="type--small mt-1">
-                            {% # theme-check-disable UndefinedObject %}
-                            {{ form | payment_terms }}
-                            {% # theme-check-enable UndefinedObject %}
-                          </div>
+                        {% comment %}
+                          The price block position keeps its place in the block order
+                          but now renders the hero price: large price left, per-can
+                          rate right, and the savings sentence beneath. It reflects
+                          the selected size and plan together.
+
+                          payment_terms stays here rather than moving into the
+                          snippet: it needs the `form` object from the enclosing
+                          {% form 'product' %}, which {% render %} does not pass into
+                          a snippet's scope.
+                        {% endcomment %}
+                        {% render 'jc-buybox-price', block: block %}
+                        <div class="type--small mt-1 px-4" x-show="current_variant_exists">
+                          {% # theme-check-disable UndefinedObject %}
+                          {{ form | payment_terms }}
+                          {% # theme-check-enable UndefinedObject %}
                         </div>
 
                       {% when 'custom' %}
@@ -411,7 +457,7 @@
                         {% render 'product__text', block: block %}
 
                       {% when 'description' %}
-                        {% render 'product__description', block: block %}
+                        {% render 'product__description', block: block, strip_specs: true %}
 
                       {% when 'accordion' %}
                         {% render 'product__accordion', block: block %}
@@ -432,7 +478,13 @@
                         {% render 'product__liquid', block: block %}
 
                       {% when 'upsell' %}
-                        {% render 'product__upsell', block: block %}
+                        {% comment %}
+                          "You may also like" leaves the buy column. The product
+                          template already ends with a full-width product-slider
+                          section under the same heading, so the recommendations are
+                          merged into that rather than duplicated in a narrow stack
+                          halfway up the column.
+                        {% endcomment %}
 
                       {% when 'options' %}
                         {% assign has_variant_cards = false %}
@@ -480,7 +532,8 @@
                             padding-bottom:{{ block.settings.spacing_bottom }}px;
                           "
                         >
-                          {% render 'product__add', block: block %}
+                          {% render 'jc-buybox-cta', block: block %}
+                          {% render 'jc-buybox-specs' %}
                           {% if block.settings.enable_dynamic_checkout %}
                             <div
                               class="color__inherit mt-4 px-4"
@@ -505,7 +558,9 @@
 
                       {% when '@app' %}
                         {% if settings.app_block_column == 'left_column' %}
-                          <div class="p-4">{% render block %}</div>
+                          {% unless block.id contains 'paywhirl' %}
+                            <div class="p-4">{% render block %}</div>
+                          {% endunless %}
                         {% endif %}
                     {% endcase %}
                   </div>
@@ -562,30 +617,32 @@
                         {% render 'product__breadcrumb', block: block %}
 
                       {% when 'title' %}
-                        {% render 'product__title', block: block %}
+                        {% comment %}
+                          The title block position now carries the whole head of the
+                          buy column — eyebrow, title, flavor line, certification
+                          chips and the per-product bullets. product__title itself is
+                          not rendered: its vendor / SKU / savings-badge furniture is
+                          not part of this design.
+                        {% endcomment %}
+                        {% render 'jc-buybox-head', block: block %}
 
                       {% when 'price' %}
-                        <div
-                          class="
-                            px-4
-                            {{ block.settings.color_scheme }}
-                            {{ block.settings.color_border }}
-                            {{ block.settings.style_border }}
-                          "
-                          style="
-                            padding-top:{{ block.settings.spacing_top }}px;
-                            padding-bottom:{{ block.settings.spacing_bottom }}px;
-                          "
-                          x-show="current_variant_exists"
-                        >
-                          <div class="relative flex items-end justify-between">
-                            {% render 'product__price', block: block %}
-                          </div>
-                          <div class="type--small mt-1">
-                            {% # theme-check-disable UndefinedObject %}
-                            {{ form | payment_terms }}
-                            {% # theme-check-enable UndefinedObject %}
-                          </div>
+                        {% comment %}
+                          The price block position keeps its place in the block order
+                          but now renders the hero price: large price left, per-can
+                          rate right, and the savings sentence beneath. It reflects
+                          the selected size and plan together.
+
+                          payment_terms stays here rather than moving into the
+                          snippet: it needs the `form` object from the enclosing
+                          {% form 'product' %}, which {% render %} does not pass into
+                          a snippet's scope.
+                        {% endcomment %}
+                        {% render 'jc-buybox-price', block: block %}
+                        <div class="type--small mt-1 px-4" x-show="current_variant_exists">
+                          {% # theme-check-disable UndefinedObject %}
+                          {{ form | payment_terms }}
+                          {% # theme-check-enable UndefinedObject %}
                         </div>
 
                       {% when 'custom' %}
@@ -595,7 +652,7 @@
                         {% render 'product__text', block: block %}
 
                       {% when 'description' %}
-                        {% render 'product__description', block: block %}
+                        {% render 'product__description', block: block, strip_specs: true %}
 
                       {% when 'accordion' %}
                         {% render 'product__accordion', block: block %}
@@ -616,7 +673,13 @@
                         {% render 'product__liquid', block: block %}
 
                       {% when 'upsell' %}
-                        {% render 'product__upsell', block: block %}
+                        {% comment %}
+                          "You may also like" leaves the buy column. The product
+                          template already ends with a full-width product-slider
+                          section under the same heading, so the recommendations are
+                          merged into that rather than duplicated in a narrow stack
+                          halfway up the column.
+                        {% endcomment %}
 
                       {% when 'options' %}
                         {% assign hide_options = false %}
@@ -657,7 +720,8 @@
                             padding-bottom:{{ block.settings.spacing_bottom }}px;
                           "
                         >
-                          {% render 'product__add', block: block %}
+                          {% render 'jc-buybox-cta', block: block %}
+                          {% render 'jc-buybox-specs' %}
                           {% if block.settings.enable_dynamic_checkout %}
                             <div
                               class="color__inherit mt-4 px-4"
@@ -681,20 +745,37 @@
                         {% render 'product__bundle', block: block %}
 
                       {% when 'variant_cards' %}
-                        {% render 'product__variant-cards', block: block %}
+                        {% render 'jc-buybox-sizes', block: block %}
+                        {% render 'jc-buybox-plans' %}
 
                       {% when 'perks' %}
                         {% render 'product-perks-marquee', block: block %}
 
                       {% when 'badge' %}
-                        {% render 'product-badge', block: block %}
+                        {% comment %}
+                          The "PREMIUM INGREDIENTS" pill leaves the column. It sat
+                          above the price making an unfalsifiable claim, and it is
+                          the certification chips in the head block that carry the
+                          ingredient argument now, with sources.
+                        {% endcomment %}
 
                       {% when 'checklist' %}
-                        {% render 'product-checklist', block: block %}
+                        {% comment %}
+                          The five-item checklist and its "BEST VALUE · 24 cans"
+                          banner both leave the column. The checklist was identical
+                          on all five flavors; the banner promoted a pack the
+                          shopper had not selected, from above the price. What was
+                          useful in them is now the chips and bullets in the head
+                          block and the savings sentence in the price block, both of
+                          which follow the actual selection.
+                        {% endcomment %}
 
                       {% when '@app' %}
+                        {% comment %} PayWhirl's own selector is replaced by jc-buybox-plans. {% endcomment %}
                         {% if settings.app_block_column == 'right_column' %}
-                          <div class="p-4">{% render block %}</div>
+                          {% unless block.id contains 'paywhirl' %}
+                            <div class="p-4">{% render block %}</div>
+                          {% endunless %}
                         {% endif %}
                     {% endcase %}
                   </div>

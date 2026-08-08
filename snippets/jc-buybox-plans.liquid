@@ -1,0 +1,121 @@
+<!-- snippets/jc-buybox-plans.liquid -->
+{% comment %}
+  "STEP 2 · HOW OFTEN" — the purchase plan rows.
+
+  Deliberately a different shape from the size tiles above: full-width rows with
+  a radio dot, a title, a sub-label and a right-aligned price, against a grid of
+  centred bordered tiles. The two controls used to look near identical, which
+  made eight independent choices read as one list of eight.
+
+  The discount is never a literal. Both the percentage and the per-order delta
+  are computed from the selected variant's own selling plan allocation, so a
+  plan retuned in Shopify — or priced differently per variant — is reflected
+  without touching this file.
+
+  Subscribing applies to the SELECTED size: picking a plan changes jc_price,
+  which is the same getter the hero price, the per-can figure, the tile rates
+  and the CTA all read. There is no state in which a discounted hero price sits
+  beside undiscounted per-can rates.
+
+  Renders nothing on a product with no selling plans — a lone "one-time
+  purchase" row under a "how often" heading is not a choice.
+
+  Accepts:
+  - id_suffix: {string} Appended to element ids. product__main.liquid renders
+      this block twice (mobile pass and desktop right column) and hides one, so
+      the two passes must not mint the same id.
+
+  Usage:
+    {% render 'jc-buybox-plans', id_suffix: '-m' %}
+{% endcomment %}
+
+{% if product.selling_plan_groups.size > 0 %}
+  <div class="jc-bb-plansblock w-full" style="padding-top:20px;">
+    <span class="jc-bb-step">Step 2 &middot; How often</span>
+
+    <div class="jc-bb-plans" role="radiogroup" aria-label="Purchase options">
+      {%- comment -%} One-time {%- endcomment -%}
+      <button
+        type="button"
+        role="radio"
+        class="jc-bb-plan"
+        :class="{ 'is-selected': !jc_plan_id }"
+        :aria-checked="!jc_plan_id"
+        @click="jcSelectPlan(0)"
+      >
+        <span class="jc-bb-plan__dot" aria-hidden="true"></span>
+        <span class="jc-bb-plan__body">
+          <span class="jc-bb-plan__title">One-time purchase</span>
+          <span class="jc-bb-plan__sub">Ships once. No commitment.</span>
+        </span>
+        <span class="jc-bb-plan__right">
+          <span
+            class="jc-bb-plan__price"
+            x-text="Shopify.formatMoney(jc_selected_price)"
+          >{{ product.selected_or_first_available_variant.price | money }}</span>
+        </span>
+      </button>
+
+      {%- comment -%}
+        Subscribe. x-if, not x-show: on a variant with no allocation for the
+        chosen plan there is no subscribe price to quote, so the row is absent
+        rather than present-and-empty.
+      {%- endcomment -%}
+      <template x-if="jc_has_subscription">
+        <div>
+          <button
+            type="button"
+            role="radio"
+            class="jc-bb-plan"
+            :class="{ 'is-selected': jc_plan_id }"
+            :aria-checked="!!jc_plan_id"
+            @click="jcSelectPlan(jc_sub_plan_id)"
+          >
+            <span class="jc-bb-plan__dot" aria-hidden="true"></span>
+            <span class="jc-bb-plan__body">
+              <span class="jc-bb-plan__title" x-text="`Subscribe &amp; save ${jc_sub_pct}%`"></span>
+              <span class="jc-bb-plan__sub" x-text="`${jc_sub_freq_label} &middot; skip or cancel anytime`"></span>
+            </span>
+            <span class="jc-bb-plan__right">
+              <span class="jc-bb-plan__price" x-text="Shopify.formatMoney(jc_sub_price)"></span>
+              <span
+                class="jc-bb-plan__delta"
+                x-show="jc_sub_delta > 0"
+                x-text="`save ${Shopify.formatMoney(jc_sub_delta)} per order`"
+              ></span>
+            </span>
+          </button>
+
+          {%- comment -%}
+            The group offers several delivery frequencies. Showing only the
+            first would quietly drop the others, so the rest stay reachable
+            here once the row is active. Options come from jc_plans, which is
+            built from the live selling plans — no second copy of the label
+            derivation to fall out of step.
+          {%- endcomment -%}
+          <div class="jc-bb-plan__freq" x-show="jc_plan_id && jc_plans.length > 1" x-cloak>
+            <label class="jc-bb-plan__freq-label" for="jc-freq-{{ section.id }}{{ id_suffix }}">Delivery frequency</label>
+            <select
+              id="jc-freq-{{ section.id }}{{ id_suffix }}"
+              @change="jcSelectPlan(Number($event.target.value))"
+            >
+              <template x-for="p in jc_plans" :key="p.id">
+                <option :value="p.id" x-text="p.label"></option>
+              </template>
+            </select>
+          </div>
+        </div>
+      </template>
+    </div>
+
+    {%- comment -%}
+      Keeps the native (no-JS) form POST in step with the rows above. Only
+      present when a plan is actually selected — a `selling_plan` field carrying
+      0 would be posted as an invalid plan id. The JS path does not rely on this
+      at all: jcAddToCart passes the variant and plan straight to addCartItem.
+    {%- endcomment -%}
+    <template x-if="jc_plan_id">
+      <input type="hidden" name="selling_plan" :value="jc_plan_id">
+    </template>
+  </div>
+{% endif %}

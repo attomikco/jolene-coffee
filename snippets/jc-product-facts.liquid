@@ -1,0 +1,302 @@
+{%- comment -%}
+  snippets/jc-product-facts.liquid
+
+  This snippet emits DATA, not markup, so it carries no leading HTML comment
+  banner the way the rest of the theme's snippets do — that banner would land
+  in field 0 of the delimited line.
+
+  Parses product.description into the discrete facts the PDP buy box needs.
+
+  Everything here is DERIVED from live product data. Nothing about a particular
+  flavor is written down: Black is a cold brew with no oat milk and no origin
+  paragraph, Blue is a hazelnut oat latte with both, and the same pass has to
+  produce the right (possibly empty) answer for each.
+
+  Liquid snippets cannot return values, so this emits one delimited line and the
+  caller splits it. That keeps a single parse implementation shared by the head
+  block and the spec table instead of two that can drift.
+
+  Accepts:
+  - product: {object}
+
+  Usage:
+    {% capture facts %}{% render 'jc-product-facts', product: product %}{% endcapture %}
+    {% assign f = facts | strip | split: '§' %}
+
+  Field order (always emitted, '' when not confidently parseable):
+     0  type label        "Hazelnut Oat Milk Latte"
+     1  size label        "8 fl oz"
+     2  flavor sentence   "Toasted hazelnut over slow-brewed coffee and creamy oat milk."
+     3  chips             "Fair Trade Certified¦Non-GMO Project Verified¦…"
+     4  caffeine          "118mg"
+     5  volume            "8 fl oz (237 mL)"
+     6  calories          "120"
+     7  sugar             "14g"
+     8  origin            "Café Femenino, Peru"
+     9  bullets           "Toasted hazelnut, no artificial sweetness¦…"
+    10  cert paragraph    the raw sentence run the chips came from
+    11  "END"             sentinel — Liquid's split drops trailing empty fields,
+                          so a terminator keeps indices 0-10 addressable even
+                          when the last real fields are blank.
+{%- endcomment -%}
+{%- liquid
+  assign chunk_sep = '~~|~~'
+  assign field_sep = '§'
+  assign list_sep = '¦'
+
+  assign desc = product.description | default: ''
+
+  # Every block-level close becomes a chunk boundary, so <p> runs and <li> items
+  # land in one flat list in document order.
+  assign flat = desc | replace: '</p>', chunk_sep | replace: '</li>', chunk_sep | replace: '</ul>', chunk_sep | replace: '</ol>', chunk_sep | replace: '</div>', chunk_sep | replace: '<br>', chunk_sep | replace: '<br/>', chunk_sep | replace: '<br />', chunk_sep
+  assign raw_chunks = flat | split: chunk_sep
+
+  assign chunk_join = ''
+  for rc in raw_chunks
+    assign t = rc | strip_html | replace: '&nbsp;', ' ' | replace: '&amp;', '&' | strip
+    if t != blank
+      assign chunk_join = chunk_join | append: t | append: chunk_sep
+    endif
+  endfor
+  assign chunks = chunk_join | split: chunk_sep
+
+  # === LOCATE THE SPEC CHUNKS ===
+  # Keyword alone is not enough. Black's opening paragraph ends "...a bold
+  # caffeine kick any time of day", which contains "caffeine" but is prose, not
+  # the panel line. Each match therefore also has to look like a panel line:
+  # short, and for caffeine, led by a milligram figure.
+  assign idx_volume = -1
+  assign idx_caffeine = -1
+  assign idx_nutrition = -1
+  assign idx_origin = -1
+
+  for c in chunks
+    assign lc = c | downcase
+    assign words = c | split: ' '
+    assign wc = words | size
+
+    if idx_volume == -1 and wc <= 6 and lc contains 'fl oz'
+      assign idx_volume = forloop.index0
+    endif
+
+    if idx_caffeine == -1 and wc <= 5 and lc contains 'caffeine'
+      assign caff_first = words[0] | downcase
+      if caff_first contains 'mg'
+        assign idx_caffeine = forloop.index0
+      endif
+    endif
+
+    if idx_nutrition == -1 and wc <= 24 and lc contains 'calories'
+      assign idx_nutrition = forloop.index0
+    endif
+
+    if idx_origin == -1 and lc contains 'sourced from'
+      assign idx_origin = forloop.index0
+    endif
+  endfor
+
+  assign first_spec_idx = 9999
+  if idx_volume >= 0 and idx_volume < first_spec_idx
+    assign first_spec_idx = idx_volume
+  endif
+  if idx_caffeine >= 0 and idx_caffeine < first_spec_idx
+    assign first_spec_idx = idx_caffeine
+  endif
+  if idx_nutrition >= 0 and idx_nutrition < first_spec_idx
+    assign first_spec_idx = idx_nutrition
+  endif
+
+  # === CERTIFICATION PARAGRAPH ===
+  # Found by shape, not by a list of known certifications — the set differs per
+  # product (Black carries no Non-GMO mark) and hardcoding one would print marks
+  # a product does not hold. The signature is a run of three or more sentences
+  # that are all five words or shorter, sitting after the lead paragraph and
+  # before the first spec line. "Best served cold. Refrigerate after opening."
+  # is excluded by the count; the lead paragraph by its sentence length; the
+  # nutrition line by position.
+  assign idx_cert = -1
+  for c in chunks
+    if forloop.index0 == 0
+      continue
+    endif
+    if forloop.index0 >= first_spec_idx
+      break
+    endif
+    assign cert_parts = c | split: '.'
+    assign short_count = 0
+    assign long_count = 0
+    for p in cert_parts
+      assign ps = p | strip
+      if ps == blank
+        continue
+      endif
+      assign pw = ps | split: ' ' | size
+      if pw <= 5
+        assign short_count = short_count | plus: 1
+      else
+        assign long_count = long_count | plus: 1
+      endif
+    endfor
+    if long_count == 0 and short_count >= 3
+      assign idx_cert = forloop.index0
+      break
+    endif
+  endfor
+
+  assign cert_text = ''
+  assign chips_join = ''
+  if idx_cert >= 0
+    assign cert_text = chunks[idx_cert]
+    assign cert_sentences = cert_text | split: '.'
+    for p in cert_sentences
+      assign ps = p | strip
+      if ps != blank
+        assign chips_join = chips_join | append: ps | append: list_sep
+      endif
+    endfor
+    assign chips_join = chips_join | remove_last: list_sep
+  endif
+
+  # === FLAVOR LINE ===
+  # First sentence of the lead paragraph. The append/replace pair restores the
+  # period the split consumed without doubling it when the paragraph was a
+  # single sentence that already ended in one.
+  assign flavor = ''
+  if chunks.size > 0
+    assign flavor = chunks[0] | split: '. ' | first | strip | append: '.' | replace: '..', '.'
+  endif
+
+  # === VOLUME ===
+  assign spec_volume = ''
+  assign size_label = ''
+  if idx_volume >= 0
+    assign spec_volume = chunks[idx_volume]
+    assign size_label = spec_volume | split: '(' | first | strip
+  endif
+
+  # === CAFFEINE ===
+  assign spec_caffeine = ''
+  if idx_caffeine >= 0
+    assign spec_caffeine = chunks[idx_caffeine] | split: ' ' | first | strip
+  endif
+
+  # === CALORIES AND SUGAR ===
+  # The nutrition line is one run of "<figure> <nutrient>" pairs. Each pair is
+  # matched on its OWN label, so sugar can only ever be read off the segment
+  # whose label is sugar — reading by position would have taken "1g protein",
+  # the trailing segment, and printed Blue's sugar as 1 g instead of 14 g.
+  # A segment that is not exactly figure-plus-label is skipped, not guessed at.
+  assign spec_calories = ''
+  assign spec_sugar = ''
+  if idx_nutrition >= 0
+    assign nutrition = chunks[idx_nutrition]
+    assign nut_segments = nutrition | split: '·'
+    if nut_segments.size == 1
+      assign nut_segments = nutrition | split: ','
+    endif
+    for s in nut_segments
+      assign seg_words = s | strip | split: ' '
+      if seg_words.size == 2
+        assign seg_label = seg_words[1] | downcase
+        if seg_label contains 'calorie'
+          assign spec_calories = seg_words[0]
+        endif
+        if seg_label contains 'sugar'
+          assign spec_sugar = seg_words[0]
+        endif
+      endif
+    endfor
+  endif
+
+  # === ORIGIN ===
+  # Absent on Black, which has no sourcing paragraph — the row simply does not
+  # render for it.
+  assign spec_origin = ''
+  if idx_origin >= 0
+    assign origin_tail = chunks[idx_origin] | split: 'sourced from' | last
+    assign origin_tail = origin_tail | split: '—' | first | split: ' – ' | first | split: ' - ' | first
+    assign origin_tail = origin_tail | split: '. ' | first | strip | remove_last: '.'
+    assign spec_origin = origin_tail | strip
+  endif
+
+  # === TYPE LABEL ===
+  # product.type is "Coffee" on every product here, which says nothing, so the
+  # descriptive half of the title is preferred: "Jolene Blue: Hazelnut Oat Milk
+  # Latte" -> "Hazelnut Oat Milk Latte". Falls back to product.type when a title
+  # carries no colon.
+  assign type_label = ''
+  if product.title contains ':'
+    assign type_label = product.title | split: ':' | last | strip
+  else
+    assign type_label = product.type | default: product.title
+  endif
+
+  # === PER-PRODUCT BULLETS ===
+  # custom.pdp_highlights minus any entry that only restates a chip. The test is
+  # built from the chips this product actually rendered, so it adapts: with no
+  # Non-GMO chip, a "Non-GMO" highlight survives and carries the claim instead.
+  # An entry is dropped only when almost nothing is left after removing chip
+  # vocabulary — "Gluten-free and Non-GMO certified" goes, while "Oat milk base,
+  # fully dairy-free" stays, because "oat milk base" is not on any chip.
+  assign chip_terms = '|'
+  assign chip_list = chips_join | split: list_sep
+  for ch in chip_list
+    assign chip_words = ch | downcase | replace: '-', ' ' | replace: '.', '' | replace: ',', '' | split: ' '
+    for w in chip_words
+      if w.size >= 3
+        assign chip_terms = chip_terms | append: w | append: '|'
+      endif
+    endfor
+  endfor
+
+  assign stop_words = '|and|the|with|for|not|all|our|you|are|its|from|that|this|has|have|'
+
+  assign bullets_join = ''
+  assign bullet_count = 0
+  assign highlights = product.metafields.custom.pdp_highlights.value
+  if highlights
+    for h in highlights
+      if bullet_count >= 3
+        break
+      endif
+      assign hs = h | strip
+      if hs == blank
+        continue
+      endif
+      assign h_words = hs | downcase | replace: '-', ' ' | replace: ',', '' | replace: '.', '' | replace: '(', '' | replace: ')', '' | split: ' '
+      assign informative = 0
+      for w in h_words
+        if w.size < 3
+          continue
+        endif
+        assign probe = '|' | append: w | append: '|'
+        if chip_terms contains probe
+          continue
+        endif
+        if stop_words contains probe
+          continue
+        endif
+        assign informative = informative | plus: 1
+      endfor
+      if informative >= 2
+        assign bullets_join = bullets_join | append: hs | append: list_sep
+        assign bullet_count = bullet_count | plus: 1
+      endif
+    endfor
+    assign bullets_join = bullets_join | remove_last: list_sep
+  endif
+
+  assign out = type_label
+  assign out = out | append: field_sep | append: size_label
+  assign out = out | append: field_sep | append: flavor
+  assign out = out | append: field_sep | append: chips_join
+  assign out = out | append: field_sep | append: spec_caffeine
+  assign out = out | append: field_sep | append: spec_volume
+  assign out = out | append: field_sep | append: spec_calories
+  assign out = out | append: field_sep | append: spec_sugar
+  assign out = out | append: field_sep | append: spec_origin
+  assign out = out | append: field_sep | append: bullets_join
+  assign out = out | append: field_sep | append: cert_text
+  assign out = out | append: field_sep | append: 'END'
+-%}
+{{- out -}}

@@ -1,0 +1,369 @@
+{%- comment -%}
+  snippets/jc-buybox-state.liquid
+
+  Emits DATA — a run of `key: value,` pairs spliced into the x-data object
+  literal that script__product.liquid builds. No HTML comment banner for the
+  same reason as jc-product-facts.liquid: it would land inside the object.
+
+  This is the single computation behind every number in the PDP buy box: hero
+  price, per-can rate, savings sentence, shipping bar, plan rows and CTA all
+  read the same getters, so they cannot disagree with each other or with the
+  size tiles.
+
+  WHY IT IS COMPUTED CLIENT-SIDE
+  handleProductFormChange() resolves a variant by FETCHING the section markup,
+  so current_variant_price only lands a network round trip after the click. Any
+  display bound to it shows the previous variant's price in the meantime. The
+  getters below derive from option1..option4 instead, which the tile sets
+  synchronously on click, so size and plan changes repaint in one frame. The
+  fetch still runs for its own reasons (canonical variant id, ?variant= URL,
+  gallery reorder, pickup availability) — nothing here waits on it.
+
+  NOTHING IS HARDCODED. Prices, pack sizes, the free-shipping threshold and the
+  subscription discount are all read from live variant data, live selling plans
+  and theme settings at render time. Repricing a pack in Shopify re-derives
+  every figure on the next render.
+
+  Accepts:
+  - product: {object}
+
+  Usage (inside the x-data object literal):
+    {% render 'jc-buybox-state', product: product %}
+{%- endcomment -%}
+{%- liquid
+  # Free shipping threshold, dollars -> cents. Same global setting the cart
+  # progress bar and the variant cards read, so the three cannot drift.
+  assign fs_threshold_cents = 0
+  if settings.pdp_free_shipping_threshold != blank
+    assign fs_threshold_cents = settings.pdp_free_shipping_threshold | times: 100
+  endif
+
+  # Default subscription plan: first plan of the first group that offers one.
+  assign default_group_id = ''
+  assign default_plan_id = 0
+  for group in product.selling_plan_groups
+    for sp in group.selling_plans
+      assign default_group_id = group.id
+      assign default_plan_id = sp.id
+      break
+    endfor
+    break
+  endfor
+-%}
+  {%- comment -%} --- Jolene PDP buy box --- {%- endcomment -%}
+  jc_fs_threshold: {{ fs_threshold_cents }},
+  jc_plan_id: 0,
+  jc_sub_plan_id: {{ default_plan_id }},
+  jc_group_id: '{{ default_group_id }}',
+
+  {%- comment -%}
+    One entry per variant. `pack` comes from the leading integer of whichever
+    option value starts with one ("24 Cans" -> 24) — the same idiom
+    product__variant-cards-grid.liquid uses, so the tiles and the hero divide by
+    the same number. A non-numeric label ("Small") resolves to 0, which switches
+    the per-can and savings figures off rather than dividing by zero.
+  {%- endcomment -%}
+  jc_variants: [
+    {%- for v in product.variants -%}
+      {%- liquid
+        assign pack = 0
+        for o in v.options
+          if pack == 0
+            assign cand = o | split: ' ' | first | plus: 0
+            if cand > 0
+              assign pack = cand
+            endif
+          endif
+        endfor
+      -%}
+      {
+        id: {{ v.id }},
+        price: {{ v.price }},
+        compare_at: {{ v.compare_at_price | default: 0 }},
+        available: {{ v.available }},
+        pack: {{ pack }},
+        plans: { {% for a in v.selling_plan_allocations %}'{{ a.selling_plan.id }}': {{ a.per_delivery_price }}{% unless forloop.last %}, {% endunless %}{% endfor %} }
+      }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ],
+
+  {%- comment -%}
+    Lookup from the option keys Alpine already holds. option1..option4 are
+    base64 of the option value with spaces turned into "+", so the keys are
+    built here with the identical filter chain rather than decoded in JS —
+    no second encoder to keep in step with the first.
+  {%- endcomment -%}
+  jc_variants_by_key: {
+    {%- for v in product.variants -%}
+      {%- capture vkey -%}
+        {%- for o in v.options -%}
+          {{- o | replace: ' ', '+' | base64_encode -}}{%- unless forloop.last -%}|{%- endunless -%}
+        {%- endfor -%}
+      {%- endcapture -%}
+      '{{ vkey }}': {{ forloop.index0 }}{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  },
+
+  {%- comment -%}
+    Delivery frequencies offered by the subscription group. The label is derived
+    from the plan's own option value ("1 month" -> "Every month", "2 weeks" ->
+    "Every 2 weeks"); the discount is never taken from here, it is computed from
+    the selected variant's actual allocation below.
+  {%- endcomment -%}
+  jc_plans: [
+    {%- for group in product.selling_plan_groups -%}
+      {%- for sp in group.selling_plans -%}
+        {%- liquid
+          assign opt_val = sp.options.first.value | default: sp.name | strip
+          assign first_tok = opt_val | split: ' ' | first
+          if first_tok == '1'
+            assign opt_val = opt_val | remove_first: '1 '
+          endif
+          assign freq_label = 'Every ' | append: opt_val
+        -%}
+        { id: {{ sp.id }}, group: '{{ group.id }}', label: '{{ freq_label | replace: "'", "" }}' }
+        {%- unless forloop.last -%},{%- endunless -%}
+      {%- endfor -%}
+      {%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ],
+
+  {%- comment -%}
+    The variant the shopper is looking at, resolved without a fetch.
+
+    Comparisons here are all written with `>` / `>=`. This file is parsed as
+    Liquid+HTML by theme check, which reads a bare `<` as the start of a tag, so
+    a `<` in an expression is a syntax error in a .liquid snippet.
+  {%- endcomment -%}
+  get jc_selected() {
+    let parts = [];
+    for (let i = 1; 5 > i; i++) {
+      let o = this['option' + i];
+      if (o) parts.push(o);
+    }
+    let idx = this.jc_variants_by_key[parts.join('|')];
+    if (idx !== undefined) return this.jc_variants[idx];
+    return this.jc_variants.find(v => v.id === this.current_variant_id) || this.jc_variants[0] || null;
+  },
+
+  {%- comment -%}
+    Effective price of the current size AND plan together. Every other figure in
+    the column is derived from this one, which is what keeps a discounted hero
+    price from ever appearing next to undiscounted per-can rates.
+  {%- endcomment -%}
+  jcEffective(v) {
+    if (!v) return 0;
+    if (this.jc_plan_id) {
+      let p = v.plans[this.jc_plan_id];
+      if (p !== undefined) return p;
+    }
+    return v.price;
+  },
+
+  get jc_price() {
+    let v = this.jc_selected;
+    return v ? this.jcEffective(v) : this.current_variant_price;
+  },
+
+  {%- comment -%}
+    Per-tile figures for the size row.
+
+    The tiles used to render their price and per-can rate as static Liquid, from
+    the one-time price only. With a subscription selected that left a discounted
+    hero price sitting above four undiscounted tile rates that no longer
+    multiplied out. They now go through the same jcEffective() the hero does, so
+    picking a plan repaints the whole row with it.
+
+    Percentages floor rather than round, matching the Liquid fallback the tiles
+    render server-side, so hydration does not shift a "save 33%" to "save 34%".
+  {%- endcomment -%}
+  jcVariantById(id) {
+    return this.jc_variants.find(v => v.id === id) || null;
+  },
+  jcTilePrice(id) {
+    return this.jcEffective(this.jcVariantById(id));
+  },
+  jcTileUnit(id) {
+    let v = this.jcVariantById(id);
+    if (!v || !v.pack) return 0;
+    return Math.floor(this.jcEffective(v) / v.pack);
+  },
+  jcTileSavePct(id) {
+    let v = this.jcVariantById(id), b = this.jc_base_variant;
+    if (!v || !b || !v.pack || !b.pack || v.pack === b.pack) return 0;
+    let base_unit = Math.floor(this.jcEffective(b) / b.pack);
+    let unit = this.jcTileUnit(id);
+    if (!base_unit || unit >= base_unit) return 0;
+    return Math.floor((base_unit - unit) / base_unit * 100);
+  },
+
+  {%- comment -%}
+    Only ever a real merchant-set compare_at_price. There is deliberately no
+    getter for "per-can rate multiplied back up to a list price": that number
+    has never been charged, and striking it through would assert a former price
+    that did not exist. The savings SENTENCE names its comparison instead.
+  {%- endcomment -%}
+  get jc_compare_price() {
+    let v = this.jc_selected;
+    if (!v || !v.compare_at) return 0;
+    return v.compare_at > this.jc_price ? v.compare_at : 0;
+  },
+
+  {%- comment -%}
+    Divided in cents so it rounds DOWN: $35.99 / 12 is $2.99, never a $3.00 we
+    do not charge.
+  {%- endcomment -%}
+  get jc_unit_price() {
+    let v = this.jc_selected;
+    if (!v || !v.pack) return 0;
+    return Math.floor(this.jc_price / v.pack);
+  },
+
+  {%- comment -%} Smallest pack on the product — the thing savings are measured against. {%- endcomment -%}
+  get jc_base_variant() {
+    let best = null;
+    for (const v of this.jc_variants) {
+      if (v.pack > 0 && (best === null || best.pack > v.pack)) best = v;
+    }
+    return best;
+  },
+
+  {%- comment -%}
+    Null-safe pack count for the baseline. Bindings are evaluated even while
+    their x-show is false, so the savings sentence has to be able to read a
+    pack size on a product that has no numeric packs at all.
+  {%- endcomment -%}
+  get jc_base_pack() {
+    let b = this.jc_base_variant;
+    return b ? b.pack : 0;
+  },
+
+  get jc_is_base_pack() {
+    let v = this.jc_selected, b = this.jc_base_variant;
+    return !!(v && b && v.pack && b.pack && v.pack === b.pack);
+  },
+
+  get jc_selected_price() {
+    let v = this.jc_selected;
+    return v ? v.price : this.current_variant_price;
+  },
+
+  get jc_sub_freq_label() {
+    let p = this.jc_plans.find(p => p.id === this.jc_sub_plan_id);
+    return p ? p.label : '';
+  },
+
+  {%- comment -%} Next size up from the baseline, for the starter-pack nudge. {%- endcomment -%}
+  get jc_next_pack() {
+    let b = this.jc_base_variant;
+    if (!b) return 0;
+    let next = 0;
+    for (const v of this.jc_variants) {
+      if (v.pack > b.pack && (next === 0 || next > v.pack)) next = v.pack;
+    }
+    return next;
+  },
+
+  {%- comment -%}
+    What the same number of cans would cost bought as baseline packs, under the
+    SAME plan — like for like, so subscribing does not inflate the saving by
+    comparing a discounted total against an undiscounted one. Scaled by whole
+    packs when the sizes divide evenly (4 -> 12, 24, 36 all do), which avoids
+    the rounding drift of flooring a per-can rate and multiplying it back up.
+
+    This value exists only to be named inside the savings sentence. It is never
+    rendered on its own and never struck through.
+  {%- endcomment -%}
+  get jc_equivalent_price() {
+    let v = this.jc_selected, b = this.jc_base_variant;
+    if (!v || !b || !v.pack || !b.pack || v.pack === b.pack) return 0;
+    let basePrice = b.price;
+    if (this.jc_plan_id) {
+      let p = b.plans[this.jc_plan_id];
+      if (p !== undefined) basePrice = p;
+    }
+    if (v.pack % b.pack === 0) return basePrice * (v.pack / b.pack);
+    return Math.round(basePrice / b.pack * v.pack);
+  },
+
+  get jc_savings() {
+    let eq = this.jc_equivalent_price;
+    if (!eq) return 0;
+    let diff = eq - this.jc_price;
+    return diff > 0 ? diff : 0;
+  },
+
+  {%- comment -%}
+    Subscription discount, read off the selected variant's own allocation rather
+    than a literal. If the plan's price adjustment is ever retuned in Shopify,
+    or set per-variant, this follows it.
+  {%- endcomment -%}
+  get jc_sub_price() {
+    let v = this.jc_selected;
+    if (!v || !this.jc_sub_plan_id) return 0;
+    let p = v.plans[this.jc_sub_plan_id];
+    return p === undefined ? 0 : p;
+  },
+  get jc_sub_delta() {
+    let v = this.jc_selected, p = this.jc_sub_price;
+    if (!v || !p) return 0;
+    return v.price > p ? v.price - p : 0;
+  },
+  get jc_sub_pct() {
+    let v = this.jc_selected;
+    if (!v || !v.price || !this.jc_sub_delta) return 0;
+    return Math.round(this.jc_sub_delta / v.price * 100);
+  },
+  get jc_has_subscription() {
+    let v = this.jc_selected;
+    return !!(v && this.jc_sub_plan_id && v.plans[this.jc_sub_plan_id] !== undefined);
+  },
+
+  {%- comment -%}
+    Free shipping. Subscriptions ship free regardless of subtotal, so the bar
+    goes green on the subscribe plan whatever the pack costs.
+  {%- endcomment -%}
+  get jc_ships_free() {
+    if (this.jc_plan_id) return true;
+    if (!this.jc_fs_threshold) return true;
+    return this.jc_price >= this.jc_fs_threshold;
+  },
+  get jc_ship_gap() {
+    return this.jc_ships_free ? 0 : this.jc_fs_threshold - this.jc_price;
+  },
+  get jc_ship_pct() {
+    if (this.jc_ships_free || !this.jc_fs_threshold) return 100;
+    let pct = Math.round(this.jc_price / this.jc_fs_threshold * 100);
+    {%- comment -%} Floor of 4% so an empty-looking track still reads as a track. {%- endcomment -%}
+    return Math.max(4, Math.min(100, pct));
+  },
+
+  get jc_can_add() {
+    let v = this.jc_selected;
+    return !!(v && v.available);
+  },
+
+  {%- comment -%}
+    Plan switch. Sets its own state first so the whole column repaints in one
+    frame, then mirrors into the theme's selling-plan fields so anything still
+    reading those (and the no-JS hidden input) stays in step.
+  {%- endcomment -%}
+  jcSelectPlan(planId) {
+    this.jc_plan_id = planId;
+    if (planId) this.jc_sub_plan_id = planId;
+    this.current_variant_selling_plan_id = planId || 0;
+    this.current_variant_selling_group_id = planId ? this.jc_group_id : 0;
+  },
+
+  {%- comment -%}
+    Adds the variant and plan this column is actually displaying, rather than
+    letting the form serialise a `name="id"` select that only catches up after
+    the fetch resolves. addCartItem omits selling_plan entirely when passed 0.
+  {%- endcomment -%}
+  jcAddToCart() {
+    let v = this.jc_selected;
+    if (!v || !v.available) return;
+    this.button_loading = true;
+    this.addCartItem(v.id, this.jc_plan_id || 0, this.quantity, true);
+    setTimeout(() => { this.button_loading = false; }, 600);
+  },

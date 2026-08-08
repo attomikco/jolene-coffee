@@ -128,6 +128,9 @@
     );
   },
 
+  {% comment %} Jolene PDP buy box state — see snippets/jc-buybox-state.liquid {% endcomment %}
+  {% render 'jc-buybox-state', product: product %}
+
   {% comment %} Enable product form {% endcomment %}
   initProductForm() {
 

@@ -1,0 +1,87 @@
+<!-- snippets/jc-buybox-specs.liquid -->
+{% comment %}
+  Always-visible spec table under the CTA. Label left, value right, hairline
+  rows, tabular figures.
+
+  Every value is parsed from the nutrition panel already in product.description
+  by jc-product-facts.liquid. Nothing is written down here, and a row that
+  cannot be sourced with confidence is omitted rather than guessed at — Black is
+  a cold brew with no oat milk and no sourcing paragraph, so it renders no
+  Origin row at all.
+
+  On sugar specifically: the panel reads
+    "120 calories · 4g fat · 20g carbs · 14g sugar · 1g protein"
+  and the parser matches each segment on its OWN nutrient label. Reading the
+  figure off the last segment instead would print Blue's sugar as 1 g — that is
+  the protein number, and it would understate the sugar in the can by 13 g.
+
+  Usage:
+    {% render 'jc-buybox-specs' %}
+{% endcomment %}
+
+{%- capture jc_facts %}{% render 'jc-product-facts', product: product %}{% endcapture -%}
+{%- liquid
+  assign f = jc_facts | strip | split: '§'
+  assign spec_caffeine = f[4] | strip
+  assign spec_volume = f[5] | strip
+  assign spec_calories = f[6] | strip
+  assign spec_sugar = f[7] | strip
+  assign spec_origin = f[8] | strip
+
+  assign spec_count = 0
+  if spec_caffeine != blank
+    assign spec_count = spec_count | plus: 1
+  endif
+  if spec_volume != blank
+    assign spec_count = spec_count | plus: 1
+  endif
+  if spec_calories != blank
+    assign spec_count = spec_count | plus: 1
+  endif
+  if spec_sugar != blank
+    assign spec_count = spec_count | plus: 1
+  endif
+  if spec_origin != blank
+    assign spec_count = spec_count | plus: 1
+  endif
+-%}
+
+{% if spec_count > 0 %}
+  <div class="jc-bb-specs">
+    <table class="jc-bb-specs__table">
+      <caption class="ac-sr-only">Nutrition and sourcing for one can</caption>
+      <tbody>
+        {% if spec_caffeine != blank %}
+          <tr class="jc-bb-specs__row">
+            <th class="jc-bb-specs__label" scope="row">Caffeine</th>
+            <td class="jc-bb-specs__value">{{ spec_caffeine }}</td>
+          </tr>
+        {% endif %}
+        {% if spec_volume != blank %}
+          <tr class="jc-bb-specs__row">
+            <th class="jc-bb-specs__label" scope="row">Volume</th>
+            <td class="jc-bb-specs__value">{{ spec_volume }}</td>
+          </tr>
+        {% endif %}
+        {% if spec_calories != blank %}
+          <tr class="jc-bb-specs__row">
+            <th class="jc-bb-specs__label" scope="row">Calories</th>
+            <td class="jc-bb-specs__value">{{ spec_calories }}</td>
+          </tr>
+        {% endif %}
+        {% if spec_sugar != blank %}
+          <tr class="jc-bb-specs__row">
+            <th class="jc-bb-specs__label" scope="row">Sugar</th>
+            <td class="jc-bb-specs__value">{{ spec_sugar }}</td>
+          </tr>
+        {% endif %}
+        {% if spec_origin != blank %}
+          <tr class="jc-bb-specs__row">
+            <th class="jc-bb-specs__label" scope="row">Origin</th>
+            <td class="jc-bb-specs__value">{{ spec_origin }}</td>
+          </tr>
+        {% endif %}
+      </tbody>
+    </table>
+  </div>
+{% endif %}

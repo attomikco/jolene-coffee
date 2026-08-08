@@ -1,0 +1,117 @@
+<!-- snippets/jc-buybox-cta.liquid -->
+{% comment %}
+  Add-to-cart button, the reassurance line under it, and the mobile sticky bar.
+
+  Adds via addCartItem(variant, plan, quantity) rather than serialising the
+  form. The form still carries a `name="id"` select from product__options, but
+  that select only catches up after handleProductFormChange's fetch resolves —
+  submitting through it could add the previous variant while the column already
+  showed the new price. Passing jc_selected.id directly means the line item is
+  always the one on screen.
+
+  Accepts:
+  - block: {object}
+  - is_mobile_column: {boolean} True for the section's mobile pass only.
+
+  product__main.liquid renders every buy-column block TWICE — once in the
+  mobile pass, once in the desktop right column — and hides one of the two with
+  display:none. Only the mobile pass carries the sticky bar and the intersection
+  observer that drives it: an observer on a display:none element reports "not
+  intersecting" forever, so running both would leave the two passes fighting
+  over `stickyadd` and pin the bar open.
+
+  Usage:
+    {% render 'jc-buybox-cta', block: block, is_mobile_column: true %}
+{% endcomment %}
+
+<div
+  {% if is_mobile_column %}
+    id="product-add"
+    x-intersect:enter="stickyadd = false;"
+    x-intersect:leave="stickyadd = true;"
+  {% endif %}
+  class="jc-bb-cta-wrap"
+  {{ block.shopify_attributes }}
+>
+  {%- comment -%}
+    No x-cloak on the primary button: it is the common case, so it renders
+    server-side with the first available variant's price and is corrected on
+    first paint rather than flashing in.
+  {%- endcomment -%}
+  <button
+    type="button"
+    class="jc-bb-cta"
+    :disabled="button_loading || !jc_can_add"
+    :class="{ 'btn--loading': cart_loading && button_loading }"
+    x-show="jc_can_add"
+    @click="jcAddToCart()"
+  >
+    <span>Add to cart</span>
+    <span aria-hidden="true" style="margin:0 0.5em;">&middot;</span>
+    <span
+      class="jc-bb-cta__price"
+      x-text="Shopify.formatMoney(jc_price * quantity)"
+    >{{ product.selected_or_first_available_variant.price | money }}</span>
+  </button>
+
+  <button
+    type="button"
+    class="jc-bb-cta jc-bb-cta--muted"
+    disabled
+    x-show="!jc_can_add"
+    x-cloak
+  >
+    {{ 'labels.sold_out' | t }}
+  </button>
+
+  {%- comment -%}
+    Reassurance follows the plan: a subscriber is not being sold a returns
+    window, they are being reassured they can stop.
+  {%- endcomment -%}
+  <p
+    class="jc-bb-reassure"
+    x-text="jc_plan_id
+      ? 'Ships in 1–2 business days · Cancel or skip anytime'
+      : 'Ships in 1–2 business days · Free returns within 30 days'"
+  >Ships in 1–2 business days &middot; Free returns within 30 days</p>
+
+  {%- comment -%}
+    Quantity is not exposed in this column, but submitCartForm and jcAddToCart
+    both read it, so the field stays as the theme expects.
+  {%- endcomment -%}
+  <input
+    class="hidden"
+    type="number"
+    name="quantity"
+    min="1"
+    value="1"
+    aria-label="{{ 'labels.quantity' | t }}"
+    x-model="quantity"
+    hidden
+  >
+</div>
+
+{% if is_mobile_column %}
+  {%- comment -%}
+    Mobile sticky CTA. Driven by the same `stickyadd` flag the theme's own
+    sticky add block uses, set by the x-intersect pair above, so it appears
+    exactly when the real button is off screen. Hidden outright at desktop
+    widths in CSS as well, since the mobile pass stays in the DOM there.
+  {%- endcomment -%}
+  <div
+    class="jc-bb-sticky"
+    :class="{ 'is-shown': stickyadd && jc_can_add }"
+    x-cloak
+  >
+    <button
+      type="button"
+      class="jc-bb-cta"
+      :disabled="button_loading || !jc_can_add"
+      @click="jcAddToCart()"
+    >
+      <span>Add to cart</span>
+      <span aria-hidden="true" style="margin:0 0.5em;">&middot;</span>
+      <span class="jc-bb-cta__price" x-text="Shopify.formatMoney(jc_price * quantity)"></span>
+    </button>
+  </div>
+{% endif %}

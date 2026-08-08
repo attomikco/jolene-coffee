@@ -1,0 +1,86 @@
+<!-- snippets/jc-buybox-price.liquid -->
+{% comment %}
+  Hero price block. Sits directly under a hairline divider, above the size
+  tiles — the price used to appear seventh in the column, after a badge pill, a
+  checklist and a banner promoting a pack the shopper had not selected.
+
+  Reflects the selected size AND plan at once: every figure reads the same
+  jc_price getter from jc-buybox-state.liquid, the one the tiles and the CTA
+  read, so the hero can never quote a subscription price beside one-time
+  per-can rates.
+
+  NO STRIKETHROUGH LIST PRICE. There is no "$71.88" struck out above $65.99
+  here, because no such price has ever been charged and a strikethrough asserts
+  a former or prevailing one. The saving is stated as a sentence that names its
+  comparison instead. The only struck-through figure possible is a real
+  compare_at_price set on the variant in Shopify.
+
+  Accepts:
+  - block: {object}
+
+  Usage:
+    {% render 'jc-buybox-price', block: block %}
+{% endcomment %}
+
+<div
+  class="jc-bb-priceblock w-full px-4"
+  style="
+    padding-top:{{ block.settings.spacing_top }}px;
+    padding-bottom:{{ block.settings.spacing_bottom }}px;
+  "
+  x-show="current_variant_exists"
+  {{ block.shopify_attributes }}
+>
+  <hr class="jc-bb-rule">
+
+  <div class="jc-bb-price__top">
+    <div>
+      {%- comment -%}
+        Server-rendered price is the first available variant's, so the block is
+        never blank before Alpine hydrates; x-text takes over on first paint.
+      {%- endcomment -%}
+      <span
+        class="jc-bb-price__main"
+        x-text="Shopify.formatMoney(jc_price)"
+      >{{ product.selected_or_first_available_variant.price | money }}</span>
+
+      {%- comment -%}
+        Real compare_at_price only. x-if rather than x-show so the <s> element
+        does not exist in the DOM at all unless the merchant has actually set
+        one — no struck-through markup to leak into a screen reader or a
+        stylesheet override.
+      {%- endcomment -%}
+      <template x-if="jc_compare_price > 0">
+        <s class="jc-bb-price__compare" x-text="Shopify.formatMoney(jc_compare_price)"></s>
+      </template>
+    </div>
+
+    <div class="jc-bb-price__unitwrap" x-show="jc_unit_price > 0" x-cloak>
+      <span class="jc-bb-price__unit" x-text="Shopify.formatMoney(jc_unit_price)"></span>
+      <span class="jc-bb-price__unit-label">per can</span>
+    </div>
+  </div>
+
+  {%- comment -%}
+    The saving, as a sentence that names what it is measured against. Same
+    baseline the tiles use: the smallest pack on the product, compared under
+    whichever plan is currently selected so the two sides are like for like.
+  {%- endcomment -%}
+  <p
+    class="jc-bb-price__save"
+    x-show="!jc_is_base_pack && jc_savings > 0"
+    x-cloak
+    x-text="`You save ${Shopify.formatMoney(jc_savings)} versus buying ${jc_base_pack}-can packs`"
+  ></p>
+
+  {%- comment -%}
+    On the smallest pack there is nothing to save against, so it says so and
+    points at the next size up rather than showing an empty slot.
+  {%- endcomment -%}
+  <p
+    class="jc-bb-price__starter"
+    x-show="jc_is_base_pack && jc_next_pack > 0"
+    x-cloak
+    x-text="`Our starter pack — step up to ${jc_next_pack} cans to start saving`"
+  ></p>
+</div>

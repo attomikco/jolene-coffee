@@ -1,0 +1,79 @@
+<!-- snippets/jc-buybox-head.liquid -->
+{% comment %}
+  Top of the PDP buy column: eyebrow, title, one-line flavor description,
+  certification chips, and the per-product bullets.
+
+  Replaces what used to open the column — a "PREMIUM INGREDIENTS" badge pill and
+  a five-item checklist identical on all five flavors — with the two things that
+  differ per product: what this one tastes like, and what it is certified as.
+
+  Every string is parsed from live product data by jc-product-facts.liquid. No
+  chip list is written down here: Blue carries a Non-GMO mark and Black does
+  not, and hardcoding either set would print a claim the other product cannot
+  make.
+
+  Accepts:
+  - block: {object}
+
+  Usage:
+    {% render 'jc-buybox-head', block: block %}
+{% endcomment %}
+
+{%- capture jc_facts %}{% render 'jc-product-facts', product: product %}{% endcapture -%}
+{%- liquid
+  assign f = jc_facts | strip | split: '§'
+  assign jc_type = f[0] | strip
+  assign jc_size = f[1] | strip
+  assign jc_flavor = f[2] | strip
+  assign jc_chips = f[3] | split: '¦'
+  assign jc_bullets = f[9] | split: '¦'
+-%}
+
+<div
+  class="jc-bb-head w-full px-4"
+  style="
+    padding-top:{{ block.settings.spacing_top }}px;
+    padding-bottom:{{ block.settings.spacing_bottom }}px;
+  "
+  {{ block.shopify_attributes }}
+>
+  {%- comment -%}
+    Eyebrow. The descriptive half of the title rather than product.type, which
+    is "Coffee" on every product here and so tells the shopper nothing. Size
+    comes from the volume line of the nutrition panel.
+  {%- endcomment -%}
+  {% if jc_type != blank %}
+    <span class="jc-bb-eyebrow">
+      {{- jc_type -}}
+      {%- if jc_size != blank %} &middot; {{ jc_size }}{% endif -%}
+    </span>
+  {% endif %}
+
+  <h1 class="jc-bb-title">{{ product.title }}</h1>
+
+  {% if jc_flavor != blank %}
+    <p class="jc-bb-flavor">{{ jc_flavor }}</p>
+  {% endif %}
+
+  {% if jc_chips.size > 0 %}
+    <ul class="jc-bb-chips">
+      {% for chip in jc_chips %}
+        <li class="jc-bb-chip">{{ chip }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+
+  {%- comment -%}
+    Bullets sit WITH the chips, not instead of them. The chips are the same on
+    every flavor — they prove trust but do not sell this particular can — so the
+    per-product highlights carry the flavor argument underneath. Entries that
+    only restate a chip are dropped upstream in jc-product-facts.liquid.
+  {%- endcomment -%}
+  {% if jc_bullets.size > 0 %}
+    <ul class="jc-bb-bullets">
+      {% for bullet in jc_bullets %}
+        <li class="jc-bb-bullet">{{ bullet }}</li>
+      {% endfor %}
+    </ul>
+  {% endif %}
+</div>

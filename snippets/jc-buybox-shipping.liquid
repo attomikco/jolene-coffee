@@ -1,0 +1,48 @@
+<!-- snippets/jc-buybox-shipping.liquid -->
+{% comment %}
+  Free shipping progress bar, under the size tiles.
+
+  Replaces the per-tile "Ships Free" / "$24 away from free shipping" lines. Free
+  shipping is one cart-level fact; four tiles each stating their own version of
+  it made them argue. One bar states it once, for the current selection.
+
+  Threshold comes from settings.pdp_free_shipping_threshold — the same setting
+  the cart drawer's progress bar reads. The block renders nothing when no
+  threshold is configured.
+
+  Subscriptions ship free regardless of subtotal, so the bar fills green on the
+  subscribe plan whatever the pack costs.
+
+  Usage:
+    {% render 'jc-buybox-shipping' %}
+{% endcomment %}
+
+{%- liquid
+  assign fs_threshold = settings.pdp_free_shipping_threshold | plus: 0
+-%}
+
+{% if fs_threshold > 0 %}
+  <div class="jc-bb-ship">
+    <div class="jc-bb-ship__row">
+      <div
+        class="jc-bb-ship__track"
+        role="progressbar"
+        aria-label="Progress toward free shipping"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        :aria-valuenow="jc_ship_pct"
+      >
+        <div
+          class="jc-bb-ship__fill"
+          :class="{ 'is-free': jc_ships_free }"
+          :style="`width:${jc_ship_pct}%`"
+        ></div>
+      </div>
+      <span
+        class="jc-bb-ship__label"
+        :class="jc_ships_free ? 'is-free' : 'is-gap'"
+        x-text="jc_ships_free ? 'Ships free' : `${Shopify.formatMoney(jc_ship_gap)} to free shipping`"
+      ></span>
+    </div>
+  </div>
+{% endif %}

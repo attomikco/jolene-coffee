@@ -1,0 +1,37 @@
+<!-- snippets/jc-buybox-sizes.liquid -->
+{% comment %}
+  "STEP 1 · HOW MANY" — the size tile row, plus the free shipping bar beneath it.
+
+  The tiles themselves are unchanged apart from what was taken off them: the
+  per-tile shipping lines (now the one bar below) and the "Best Value" badge
+  (now the hero savings sentence). The .jc-bb-sizes wrapper is what holds the
+  row to four across at every width; see attomik-custom.css.
+
+  Accepts:
+  - block: {object} The variant_cards block.
+
+  Usage:
+    {% render 'jc-buybox-sizes', block: block %}
+{% endcomment %}
+
+{%- comment -%}
+  The step label is tied to the same condition product__variant-cards.liquid
+  uses to decide whether to render at all. On a single-variant product there is
+  no size to choose, and a "STEP 1 · HOW MANY" heading over an empty row would
+  announce a control that is not there. The shipping bar still renders — free
+  shipping is about the price, not about having a choice of packs.
+{%- endcomment -%}
+{%- liquid
+  assign has_sizes = true
+  if product.has_only_default_variant or product.options_with_values.size == 0
+    assign has_sizes = false
+  endif
+-%}
+
+<div class="jc-bb-sizes w-full">
+  {% if has_sizes %}
+    <span class="jc-bb-step">Step 1 &middot; How many</span>
+    {% render 'product__variant-cards', block: block, hide_option_label: true %}
+  {% endif %}
+  {% render 'jc-buybox-shipping' %}
+</div>

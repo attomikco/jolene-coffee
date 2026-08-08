@@ -10,6 +10,8 @@
 
   Accepts:
   - block: {object} The block object with settings.
+  - hide_option_label: {boolean} Passed through to each grid; suppresses the
+      per-option "Pack: 12 Cans" heading when the caller renders its own.
 
   Usage:
     {% render 'product__variant-cards', block: block %}
@@ -52,18 +54,10 @@
     assign has_config = true
   endif
 
-  # Free shipping threshold (convert dollars to cents for variant.price comparison).
-  # Single source of truth is the global theme setting so the PDP badge, the cart
-  # progress bar and the announcement bar can't drift apart. The block setting is
-  # kept only as a per-product override.
-  assign fs_threshold_cents = 0
-  if settings.pdp_free_shipping_threshold != blank
-    assign fs_threshold_cents = settings.pdp_free_shipping_threshold | times: 100
-  elsif block.settings.free_shipping_threshold != blank
-    assign fs_threshold_cents = block.settings.free_shipping_threshold | times: 100
-  endif
-
-  assign first_variant_price = product.variants.first.price
+  # The free-shipping threshold is no longer read here. The cards used to carry
+  # a per-tile "Ships Free" / "$24 away" line; that message is now a single
+  # progress bar rendered under the whole row by jc-buybox-shipping.liquid,
+  # which reads settings.pdp_free_shipping_threshold itself.
 -%}
 
 {% if should_render %}
@@ -98,8 +92,7 @@
         is_first_option: true,
         has_config: has_config,
         vc_config_raw: vc_config_raw,
-        fs_threshold_cents: fs_threshold_cents,
-        first_variant_price: first_variant_price
+        hide_option_label: hide_option_label
       %}
     {% else %}
       {% comment %} Multi-option default path: render each option's grid in order {% endcomment %}
@@ -112,8 +105,7 @@
           is_first_option: forloop.first,
           has_config: has_config,
           vc_config_raw: vc_config_raw,
-          fs_threshold_cents: fs_threshold_cents,
-          first_variant_price: first_variant_price
+          hide_option_label: hide_option_label
         %}
       {% endfor %}
     {% endif %}

@@ -14,8 +14,9 @@
       want the auto-pop on the first option, not every option).
   - has_config: {boolean} Whether vc_config_raw is non-blank.
   - vc_config_raw: {array} The parsed per-value metafield array.
-  - fs_threshold_cents: {number}
-  - first_variant_price: {number}
+  - hide_option_label: {boolean} Suppress this option's "Pack: 12 Cans" heading
+      when the caller renders its own (the PDP buy box supplies a
+      "STEP 1 - HOW MANY" label in its place).
 {% endcomment %}
 
 {%- liquid
@@ -74,22 +75,30 @@
   endfor
 -%}
 
-{% comment %} Option label — sits above this option's card grid {% endcomment %}
-<div class="mb-3 mt-6 flex justify-between">
-  <label class="type--small font-bold">
-    {{ card_option.name }}
-    {% for value in card_option.values %}
-      <span
-        class="font-normal"
-        :class="{
-          'inline': option{{ card_option_position }} == `{{ value | replace: ' ', '+' | base64_encode }}`,
-          'hidden': option{{ card_option_position }} != `{{ value | replace: ' ', '+' | base64_encode }}`
-        }"
-        x-cloak
-      >: {{ value -}}</span>
-    {% endfor %}
-  </label>
-</div>
+{% comment %}
+  Option label — sits above this option's card grid.
+
+  Suppressed when the caller supplies its own heading. The PDP buy box puts a
+  "STEP 1 · HOW MANY" label here instead, and "Pack: 12 Cans" directly beneath
+  it restates what the selected tile already shows.
+{% endcomment %}
+{% unless hide_option_label %}
+  <div class="mb-3 mt-6 flex justify-between">
+    <label class="type--small font-bold">
+      {{ card_option.name }}
+      {% for value in card_option.values %}
+        <span
+          class="font-normal"
+          :class="{
+            'inline': option{{ card_option_position }} == `{{ value | replace: ' ', '+' | base64_encode }}`,
+            'hidden': option{{ card_option_position }} != `{{ value | replace: ' ', '+' | base64_encode }}`
+          }"
+          x-cloak
+        >: {{ value -}}</span>
+      {% endfor %}
+    </label>
+  </div>
+{% endunless %}
 
 <div
   class="ac-vc-grid ac-vc-grid--{{ section.id }}"
@@ -153,28 +162,23 @@
         endif
       endif
 
-      # === FREE SHIPPING TRIGGER ===
-      assign show_free_shipping = false
-      if val_config and val_config.show_free_shipping == true
-        assign show_free_shipping = true
-      elsif fs_threshold_cents > 0 and card_variant
-        if card_variant.price >= fs_threshold_cents
-          assign show_free_shipping = true
-        endif
-      endif
-
       # === BADGE ===
       # Precedence (highest to lowest):
       #   1. Per-product metafield (val_config.badge):
       #        - badge_color == 'secondary' → popular_color_scheme
       #        - else → best_value_color_scheme
       #   2. Auto-heuristic by position:
-      #        - middle index, not first/last → "Popular" + popular_color_scheme
-      #        - last index, count > 1 → "Best Value" + best_value_color_scheme
+      #        - middle index, not first/last → "Most Popular" + popular_color_scheme
       #
-      # "Ships Free" is deliberately NOT a badge: it already renders as a line
-      # inside the card, and as a badge it outranked Popular/Best Value on every
-      # pack over the threshold, which suppressed them entirely.
+      # "Ships Free" is deliberately NOT a badge, and no longer a line either:
+      # the free-shipping progress bar under the tile row now owns that message
+      # for the whole selection. Repeating it per tile made four tiles argue
+      # about one cart-level fact.
+      #
+      # "Best Value" is also gone. The hero savings sentence states the saving in
+      # dollars against the smallest pack, which is the same claim with a number
+      # attached — and two competing superlatives in one row read as noise.
+      # "Most Popular" is left as the single badge in the row.
       assign badge_text = ''
       assign badge_scheme = ''
       if val_config and val_config.badge != blank
@@ -186,11 +190,8 @@
         endif
       elsif option_available
         if forloop.index0 == popular_index and forloop.index0 != 0 and forloop.index0 != last_index
-          assign badge_text = 'Popular'
+          assign badge_text = 'Most Popular'
           assign badge_scheme = block.settings.popular_color_scheme
-        elsif forloop.index0 == last_index and variant_count > 1
-          assign badge_text = 'Best Value'
-          assign badge_scheme = block.settings.best_value_color_scheme
         endif
       endif
 
@@ -236,13 +237,20 @@
       # Divided in cents so it always rounds down — $35.99 / 12 = $2.99, never
       # a rounded-up $3.00 we don't actually charge. Falls back to the metafield
       # label when a per-value config supplies one.
+      #
+      # `per_unit_is_live` marks the computed case. Those figures get bound to
+      # the plan-aware getters so that selecting a subscription repaints them
+      # along with the hero price; a label supplied verbatim by the per-value
+      # metafield is left exactly as the merchant wrote it.
       assign pack_size = value | split: ' ' | first | plus: 0
       assign per_unit_label = ''
+      assign per_unit_is_live = false
       if val_config and val_config.per_unit_label != blank
         assign per_unit_label = val_config.per_unit_label
       elsif card_variant and pack_size > 0
         assign per_unit_cents = card_variant.price | divided_by: pack_size
         assign per_unit_label = per_unit_cents | money | append: '/can'
+        assign per_unit_is_live = true
       endif
 
       # === SAVINGS ===
@@ -255,9 +263,11 @@
       if card_variant and card_variant.compare_at_price and card_variant.compare_at_price > card_variant.price
         assign has_compare_at = true
       endif
+      assign savings_is_live = false
       if val_config and val_config.savings_label != blank
         assign savings_label = val_config.savings_label
       elsif card_variant and pack_size > 0 and base_per_unit > 0 and pack_size != base_pack_size
+        assign savings_is_live = true
         assign this_per_unit = card_variant.price | divided_by: pack_size
         if this_per_unit < base_per_unit
           assign per_unit_diff = base_per_unit | minus: this_per_unit
@@ -268,17 +278,12 @@
         endif
       endif
 
-      # === FREE SHIPPING GAP ===
-      # Cards at or above the threshold say so; cards below say how far off they
-      # are, which is the more useful number on the packs that miss out. Whole
-      # dollars, rounded down by the integer divide.
-      assign fs_gap_label = ''
-      if option_available and show_free_shipping == false and fs_threshold_cents > 0 and card_variant
-        assign fs_gap_cents = fs_threshold_cents | minus: card_variant.price
-        if fs_gap_cents > 0
-          assign fs_gap_label = fs_gap_cents | divided_by: 100 | prepend: '$' | append: ' away from free shipping'
-        endif
-      endif
+      # === FREE SHIPPING ===
+      # Deliberately absent from the card. Free shipping is a cart-level fact
+      # about the current selection, not a property of four tiles at once; it
+      # now renders as a single progress bar under the whole row (see
+      # jc-buybox-shipping.liquid). Both the earned "Ships Free" line and the
+      # "$24 away" line were removed with it.
     -%}
 
     <button
@@ -346,6 +351,7 @@
                   font-family: var(--type__font-body-family, sans-serif);
                   font-weight: 700;
                 "
+                x-text="Shopify.formatMoney(jcTilePrice({{ card_variant.id }}))"
               >{{ card_variant.price | money }}</span>
               {% if has_compare_at %}
                 <span
@@ -395,6 +401,9 @@
                   font-family: var(--type__font-body-family, sans-serif);
                   margin-top: 0;
                 "
+                {% if per_unit_is_live %}
+                  x-text="`${Shopify.formatMoney(jcTileUnit({{ card_variant.id }}))}/can`"
+                {% endif %}
               >{{ per_unit_label }}</span>
               {% if savings_label != blank %}
                 <span
@@ -405,6 +414,10 @@
                     font-weight: 700;
                     margin-top: 0;
                   "
+                  {% if savings_is_live %}
+                    x-show="jcTileSavePct({{ card_variant.id }}) > 0"
+                    x-text="`save ${jcTileSavePct({{ card_variant.id }})}%`"
+                  {% endif %}
                 >{{ savings_label }}</span>
               {% endif %}
             </div>
@@ -418,31 +431,6 @@
                 margin-top: 2px;
               "
             >{{ savings_label }}</div>
-          {% endif %}
-
-          {% comment %}
-            One shipping line either way: cleared the threshold, or how much is
-            left to clear it. Both states occupy the same slot so cards keep the
-            same number of rows.
-          {% endcomment %}
-          {% if show_free_shipping %}
-            <div
-              class="ac-vc-shipping"
-              style="
-                font-size: {{ block.settings.shipping_font_size }}px;
-                font-family: var(--type__font-body-family, sans-serif);
-                margin-top: 2px;
-              "
-            >🚚 Ships Free</div>
-          {% elsif fs_gap_label != blank %}
-            <div
-              class="ac-vc-shipping ac-vc-shipping--gap"
-              style="
-                font-size: {{ block.settings.shipping_font_size }}px;
-                font-family: var(--type__font-body-family, sans-serif);
-                margin-top: 2px;
-              "
-            >{{ fs_gap_label }}</div>
           {% endif %}
 
         {% else %}

@@ -5,6 +5,11 @@
   Accepts:
   - blocksettings: {object} Liquid object of block settings.
   - is_featured: {boolean} Set to true if block is used within a section rather than product template. This will assign product object from section settings.
+  - strip_specs: {boolean} Remove the parts of the description that the PDP buy
+      box now renders elsewhere — the nutrition/caffeine list (an always-visible
+      spec table above the accordion) and the certification sentence run (chips
+      at the top of the column). Off by default, so any other caller still gets
+      the full description.
 
   Usage:
     {% render 'product__description',
@@ -29,7 +34,36 @@
   {% endif %}
 {% endif %}
 
-{% unless product.description == blank %}
+{%- liquid
+  assign description_body = product.description
+-%}
+
+{%- if strip_specs -%}
+  {%- capture jc_facts %}{% render 'jc-product-facts', product: product %}{% endcapture -%}
+  {%- liquid
+    assign jc_f = jc_facts | strip | split: '§'
+    assign jc_cert_text = jc_f[10] | strip
+
+    # The nutrition panel. Those figures are now the always-visible spec table
+    # above this accordion, so keeping them here would state caffeine, volume,
+    # calories and sugar twice in one column.
+    if description_body contains '<ul>' and description_body contains '</ul>'
+      assign before_list = description_body | split: '<ul>' | first
+      assign after_list = description_body | split: '</ul>' | last
+      assign description_body = before_list | append: after_list
+    endif
+
+    # The certification sentence run, now the chips at the top of the column.
+    # Matched on the exact text the chips were parsed from, so a description
+    # that does not carry one is left untouched rather than trimmed by guess.
+    if jc_cert_text != blank
+      assign cert_html = '<p>' | append: jc_cert_text | append: '</p>'
+      assign description_body = description_body | remove: cert_html
+    endif
+  -%}
+{%- endif -%}
+
+{% unless description_body == blank %}
   {% capture accordion_label %}
     {{ 'labels.description' | t }}
   {% endcapture %}
@@ -73,12 +107,12 @@
         inner_class: 'rte',
         button_class: button_classes,
         button_label: accordion_label,
-        content: product.description,
+        content: description_body,
         is_button: is_button,
         enable_open: block.settings.enable_open
       %}
     {% else %}
-      {{ product.description }}
+      {{ description_body }}
     {% endif %}
   </div>
 {% endunless %}
