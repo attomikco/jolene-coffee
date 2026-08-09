@@ -68,8 +68,21 @@
           assign vp_unit = vp_variant.price | divided_by: vp_size | money
           assign vp_text = vp_size | append: ' cans, ' | append: vp_unit | append: ' each'
 
+          # "Ships Free" is claimed off the ONE-TIME price, because that is the only
+          # price this line can see: it is server-rendered Liquid and the shopper's
+          # purchase option is a client-side choice made after the page is built.
+          # On a subscribable product the claim is therefore unsafe — a subscription
+          # discount can drop the same pack under the threshold (the 24-can lands at
+          # $59.39 against a $60 threshold) and the line would promise free shipping
+          # the buy box, correctly, refuses to. So it is suppressed wherever a
+          # selling plan exists at all, rather than guessed at.
+          #
+          # The pack size and per-can figure are unaffected: those are true of the
+          # variant whatever plan is picked. The free-shipping question is answered
+          # live, and for the actual selection, by the progress bar under the size
+          # tiles (jc-buybox-shipping.liquid).
           assign vp_threshold = settings.pdp_free_shipping_threshold | times: 100
-          if vp_threshold > 0 and vp_variant.price >= vp_threshold
+          if vp_threshold > 0 and vp_variant.price >= vp_threshold and product.selling_plan_groups.size == 0
             assign vp_text = vp_text | append: ' + Ships Free'
           endif
         endif
