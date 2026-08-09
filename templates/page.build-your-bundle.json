@@ -14,7 +14,7 @@
         "tier2_pct": 15,
         "tier3_qty": 0,
         "tier3_pct": 0,
-        "free_shipping_threshold": 60,
+        "free_shipping_threshold": 55,
         "color_scheme": "color__bg-body color__text",
         "spacing_top": 60,
         "spacing_bottom": 60

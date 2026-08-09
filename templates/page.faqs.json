@@ -55,7 +55,7 @@
           "type": "content",
           "settings": {
             "icon": "",
-            "content": "<p>Yes \u2014 free shipping on all orders $60 and up. Under $60, shipping is calculated by weight and runs $5.00\u2013$7.50.</p>",
+            "content": "<p>Yes \u2014 free shipping on all orders $55 and up. Under $55, shipping is calculated by weight and runs $5.00\u2013$7.50.</p>",
             "heading": "Do you offer free shipping?",
             "enable_open": true,
             "color_scheme": "btn"
