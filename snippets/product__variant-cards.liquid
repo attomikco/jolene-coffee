@@ -61,10 +61,16 @@
 -%}
 
 {% if should_render %}
+  {% comment %}
+    minmax(0, 1fr), not 1fr: a bare 1fr floors every track at the grid item's
+    min-content width, so a tile carrying an unbreakable string ("$2.69/can")
+    refuses to shrink and the row runs off the side of a narrow column. See the
+    note on .ac-vc-grid in attomik-custom.css.
+  {% endcomment %}
   <style>
     @media (min-width: 769px) {
       .ac-vc-grid--{{ section.id }} {
-        grid-template-columns: repeat({{ block.settings.desktop_columns | default: 4 }}, 1fr) !important;
+        grid-template-columns: repeat({{ block.settings.desktop_columns | default: 4 }}, minmax(0, 1fr)) !important;
       }
     }
   </style>

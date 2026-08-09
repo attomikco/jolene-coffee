@@ -138,11 +138,15 @@
   line-height: 1.5;
 }
 
-/* --- PRODUCT PERKS MARQUEE --- */
+/* --- PRODUCT PERKS --- */
 .ac-perks {
   border-radius: var(--ac-radius-lg);
   overflow: hidden;
   margin: 8px 16px;
+  /* Query container for the perk grid below — the band's own width is what
+     decides one column or two. */
+  container-type: inline-size;
+  container-name: jc-perks;
 }
 .ac-perks__header {
   display: flex;
@@ -179,22 +183,46 @@
   stroke-linejoin: round;
   flex-shrink: 0;
 }
-/* The perk row. Was `.ac-perks__marquee` — an overflow:hidden window over a
+/* The perk grid. Was `.ac-perks__marquee` — an overflow:hidden window over a
    `width: fit-content` track animated with @keyframes ac-marquee, which showed
-   the perks a slice at a time and clipped one at each end. Now a plain wrapping
-   flex row: one line on desktop, two or three at 375px, never wider than the
-   band. The animation, the track, the duplicated set, the interpunct dots and
-   the prefers-reduced-motion rule that paused the whole thing are all gone —
-   there is no longer any motion to reduce.
+   the perks a slice at a time and clipped one at each end. The animation, the
+   track, the duplicated set, the interpunct dots and the prefers-reduced-motion
+   rule that paused it are all gone; there is no longer any motion to reduce.
 
-   The row gap is the vertical one: wrapped lines need more separation from each
-   other than perks need from their neighbours on the same line. */
+   Explicit columns rather than flex wrap. Wrapping put each perk wherever it
+   happened to fit, so the check icons landed at a different x on every line;
+   columns give them one edge to line up on, which `justify-items: start`
+   enforces (the default `stretch` would centre the text inside a full-width
+   cell and undo it).
+
+   The row gap is the taller of the two: stacked perks need more separation from
+   each other than a perk needs from its neighbour across the gutter. */
 .ac-perks__list {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  justify-items: start;
   align-items: center;
   gap: 8px 16px;
   padding: 10px 14px;
+}
+
+/* Two columns once the BAND is wide enough — a container query, not a viewport
+   one, because the perks sit in the buy column and the buy column's width does
+   not track the viewport's. The PDP goes two-column at 768px, and the column it
+   creates there is 321px: NARROWER than the 343px the same band gets on a 375px
+   phone. A `min-width: 768px` media query would therefore switch to two columns
+   at exactly the width where there is least room for them. Keyed to the band, a
+   phone and a 768px tablet both correctly get one column, and the split only
+   appears on a genuinely wide column.
+
+   480px is the measured threshold: two columns have to hold the longest perk
+   (~215px) side by side, plus the 16px gutter and 28px of padding. With five
+   perks the row flow puts 1/3/5 in the left column and 2/4 in the right — the
+   3/2 split. The container itself is declared on .ac-perks above. */
+@container jc-perks (min-width: 480px) {
+  .ac-perks__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 /* COLOR. Each element below restates its own color instead of relying on the
@@ -239,7 +267,11 @@
   column-gap: 10px;
   row-gap: 16px;
   padding-top: 16px;
-  grid-template-columns: repeat(2, 1fr);
+  /* minmax(0, 1fr) rather than 1fr: a bare 1fr floors each track at the item's
+     min-content width, which the unbreakable per-can strings push past the
+     container's share as soon as the column is narrow. See the note on
+     .jc-bb-sizes .ac-vc-grid. */
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   /* Every row as tall as the tallest card, so a card carrying an extra line
      (savings, or the free-shipping gap) doesn't leave the 2x2 grid ragged.
      All rows here are implicit — only columns are templated — so this applies
@@ -736,9 +768,20 @@
 .jc-bb-sizes {
   margin-top: var(--jc-bb-space-xl);
 }
+/* minmax(0, 1fr), not 1fr. A bare `1fr` is `minmax(auto, 1fr)`, and that `auto`
+   minimum is the grid ITEM's min-content width — a floor the track cannot go
+   below however narrow the container gets. The tiles carry unbreakable strings
+   ("$2.69/can" has nowhere to wrap), so each track was floored around 96px and
+   the four of them plus gaps came to 412px inside a 321px column, hanging the
+   last tile 44px off the right of the page.
+
+   It showed up at exactly 768 because that is where the PDP goes two-column:
+   the buy column there is 321px, NARROWER than the 343px it gets on a 375px
+   phone, so the widest layout the tiles ever face is not the smallest viewport.
+   minmax(0, …) drops the floor and the four tracks share the space equally. */
 .jc-bb-sizes .ac-vc-grid,
 .jc-bb-sizes .ac-vc-grid[class] {
-  grid-template-columns: repeat(4, 1fr) !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
   column-gap: var(--jc-bb-space-xs);
   padding-top: 0;
 }
