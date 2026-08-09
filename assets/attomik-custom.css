@@ -560,7 +560,6 @@
    platform-mono fallback would render differently on every OS and match nothing
    else on the page, so the mono role is carried by the nav family with tracking
    and uppercase instead. */
-.jc-bb-eyebrow,
 .jc-bb-step,
 .jc-bb-plan__freq-label {
   font-family: var(--type__font-nav-family);
@@ -572,9 +571,25 @@
   text-transform: uppercase;
   color: var(--jc-bb-muted);
 }
-/* The spec line, as a pill. Type stays exactly the shared nav-label treatment
-   above — the same one "STEP 1 · HOW MANY" uses — and only the container
-   changes.
+/* The spec line, as a pill. It no longer rides the shared nav-label rule above:
+   that rule is sized for a standalone section heading like "STEP 1 · HOW MANY",
+   which has nothing next to it, whereas this sits directly under a 31px/900
+   display title and has to lose that contest on purpose. It now declares its
+   own type.
+
+   What the shared rule was giving it, and what this replaces:
+     font-size    --type__font-smaller  (14.55px)  -> one step further down the
+                  theme's own 1.1 modular scale (12.02px), ~2.5px smaller
+     font-weight  --type__font-nav-weight  (800)   -> --type__font-body-weight
+                  (400). The weight was doing most of the competing: 800 at
+                  14.5px reads as a second heading, not as metadata. 400 is the
+                  same weight the certification chips use.
+     line-height  --spacing__font-smaller (1.625)  -> kept at 1.15 from the
+                  pill work; the dead-leading fix stands.
+     letter-spacing / text-transform / colour are deliberately unchanged —
+                  the tracking and caps are what make it read as a spec label
+                  rather than body copy, and the colour was already the muted
+                  token.
 
    LINE HEIGHT IS THE ALIGNMENT FIX. It was --spacing__font-smaller, a ratio of
    1.625, which wrapped 10.7px of cap ink in a 23.6px line box: 6.4px of dead
@@ -602,13 +617,32 @@
 .jc-bb-eyebrow {
   display: inline-block;
   max-width: 100%;
+  font-family: var(--type__font-nav-family);
+  font-style: var(--type__font-nav-style);
+  font-weight: var(--type__font-body-weight);
+  /* One step below --type__font-100 on the theme's own 1.1 ratio rather than a
+     literal: the scale bottoms out at 100, and this label wants the step under
+     it. Expressed as the division so it still tracks type_base_size. */
+  font-size: calc(var(--type__font-100) / 1.1);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
   line-height: 1.15;
-  padding: 7px 12px;
+  /* Padding scaled with the type (7/12 at 14.55px -> 6/10 at 12.02px) so the
+     badge actually shrinks instead of keeping its old footprint around smaller
+     text. */
+  padding: 6px 10px;
   border-radius: var(--ac-radius-pill);
   background: var(--jc-bb-cream);
   border: 1px solid var(--jc-bb-hairline);
   color: var(--jc-bb-muted);
-  margin-bottom: var(--jc-bb-space-sm);
+  /* Not a bare token, because the optical gap is what was tuned, not the
+     numeric one. Shrinking the type and padding took 4.9px out of the pill's
+     box (32.7 -> 27.8), so keeping margin-bottom at --jc-bb-space-sm would have
+     pulled the title 1.5px closer to the badge's cap line even though the
+     declared margin never changed. Measured: cap-bottom to title cap-top was
+     26.86px before; 12px lands 25.40px and each extra pixel of margin buys
+     exactly one pixel of optical gap, so +1.5px restores it to 26.9px. */
+  margin-bottom: calc(var(--jc-bb-space-sm) + 1.5px);
 }
 .jc-bb-step {
   display: block;
