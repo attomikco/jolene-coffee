@@ -539,6 +539,19 @@
   --jc-bb-hairline: #DDD3C5;
   --jc-bb-hairline-soft: #E3DACC;
   --jc-bb-muted: #8A7F72;
+  /* De-emphasised text that still has to meet WCAG AA against the cream
+     surfaces. --jc-bb-muted is 3.61:1 on the eyebrow pill and 3.64:1 on the
+     page, so it cannot carry text that has to clear 4.5:1; this is the same
+     hue and saturation (32.5deg, 9.5%) dropped from 49.4% to 43% lightness,
+     which is the LIGHTEST value on that hue that clears the threshold — 4.55:1
+     on the pill, 4.58:1 on the page. Chosen at the boundary on purpose: the
+     point of the colour is still to recede.
+
+     Deliberately additive. --jc-bb-muted is used on the price compare, unit
+     label, plan sub-labels, reassurance line, spec labels and the plan radio
+     border, and darkening it would be a theme-wide change nobody asked for.
+     Only text that must clear AA should move to this one. */
+  --jc-bb-muted-aa: #786F63;
   --jc-bb-yellow: #FFCE1F;
   --jc-bb-green: #6B7F3A;
 
@@ -586,10 +599,16 @@
                   same weight the certification chips use.
      line-height  --spacing__font-smaller (1.625)  -> kept at 1.15 from the
                   pill work; the dead-leading fix stands.
-     letter-spacing / text-transform / colour are deliberately unchanged —
-                  the tracking and caps are what make it read as a spec label
-                  rather than body copy, and the colour was already the muted
-                  token.
+     letter-spacing / text-transform are deliberately unchanged — the tracking
+                  and caps are what make it read as a spec label rather than
+                  body copy.
+     colour       --jc-bb-muted (3.61:1 on this pill) -> --jc-bb-muted-aa
+                  (4.55:1), the smallest darkening that clears WCAG AA. Nothing
+                  in the theme sat between the two: the next passing token was
+                  --jc-bb-ink at 16.81:1, which is the title's own colour, and
+                  --jc-bb-green at 4.10:1 still fails and means savings. Size,
+                  weight and tracking are untouched — recession stays the
+                  type's job, not the colour's.
 
    LINE HEIGHT IS THE ALIGNMENT FIX. It was --spacing__font-smaller, a ratio of
    1.625, which wrapped 10.7px of cap ink in a 23.6px line box: 6.4px of dead
@@ -634,7 +653,7 @@
   border-radius: var(--ac-radius-pill);
   background: var(--jc-bb-cream);
   border: 1px solid var(--jc-bb-hairline);
-  color: var(--jc-bb-muted);
+  color: var(--jc-bb-muted-aa);
   /* Not a bare token, because the optical gap is what was tuned, not the
      numeric one. Shrinking the type and padding took 4.9px out of the pill's
      box (32.7 -> 27.8), so keeping margin-bottom at --jc-bb-space-sm would have
