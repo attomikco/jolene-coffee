@@ -1011,11 +1011,40 @@
   transition: opacity 0.15s ease;
 }
 .jc-bb-cta:hover { opacity: 0.88; }
-.jc-bb-cta[disabled] { opacity: 0.45; cursor: not-allowed; }
+/* Disabled reads as deliberately dimmed rather than as broken text. Fading the
+   whole button moves background and label toward the page together, so the
+   label keeps its contrast against its own background instead of dissolving
+   into it. 0.55 rather than 0.45: still obviously inert, still readable. */
+.jc-bb-cta[disabled] { opacity: 0.55; cursor: not-allowed; }
 .jc-bb-cta--muted {
   background: var(--jc-bb-tan);
   color: var(--jc-bb-ink);
 }
+
+/* COLOR. .jc-bb-cta sets `color` on the BUTTON, which reaches the spans inside
+   it only by inheritance — and `body * { color: var(--color__text-light) }` at
+   (0,0,1) sets colour on every descendant DIRECTLY, so it beats any inherited
+   value. That is how the label and price ended up at #1d1d1e on a #17150F
+   button: about 1.05:1, effectively invisible.
+
+   Why it bites here and not in the perks band: elements there sit under a
+   `color__*` scheme class whose CSS targets descendants, so it outranks
+   `body *` and inheritance survives. The CTA carries no scheme class — the
+   nearest is a `color__bg-transparent` two levels up, which only sets a
+   background — so nothing outranks `body *` and it takes the text. The earlier
+   reading that `body *` "was not winning on the PDP" held only for
+   scheme-classed containers; it does not generalise, and this is the case that
+   shows it.
+
+   `inherit`, not a literal: the class is (0,1,0) and wins, and the value then
+   follows whatever the button itself carries — cream on the primary button, ink
+   on .jc-bb-cta--muted — instead of pinning one and being wrong on the other. */
+.jc-bb-cta__label,
+.jc-bb-cta__sep,
+.jc-bb-cta__price {
+  color: inherit;
+}
+.jc-bb-cta__sep { margin: 0 0.5em; }
 .jc-bb-cta__price { font-variant-numeric: tabular-nums; }
 .jc-bb-reassure {
   font-family: var(--type__font-body-family);
