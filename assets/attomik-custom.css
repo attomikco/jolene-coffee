@@ -197,12 +197,17 @@
   padding: 10px 14px;
 }
 
-/* COLOR. The theme sets `body * { color: var(--color__text-light) }` at
-   specificity (0,0,1), which reaches every descendant directly and beats
-   inheritance from the scheme class on .ac-perks__list. So each element below
-   restates its own color: a class selector is (0,1,0) and wins, and `inherit`
-   takes whichever scheme the merchant picked for the band rather than pinning
-   a literal that would be wrong the moment they switch it. */
+/* COLOR. Each element below restates its own color instead of relying on the
+   cascade from .ac-perks__list. The compiled bundle ships an unscoped
+   `body * { color: var(--color__text-light) }` at specificity (0,0,1) — see the
+   jc-bundle note further down — and wherever that sheet is in play it re-sets
+   color on every descendant, so inheritance from the scheme class on the row is
+   lost. Measured on the PDP it is not currently winning here (an unstyled span
+   dropped into the dark header still comes out light), so these are insurance
+   rather than a repair for a visible bug: a class selector is (0,1,0) and beats
+   it if it ever does apply, and `inherit` follows whichever scheme the merchant
+   picks for the band instead of pinning a literal that would be wrong the
+   moment they switch it. */
 .ac-perks__item {
   display: flex;
   align-items: center;
