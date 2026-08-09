@@ -179,56 +179,53 @@
   stroke-linejoin: round;
   flex-shrink: 0;
 }
-.ac-perks__marquee {
-  overflow: hidden;
-}
-.ac-perks__track {
+/* The perk row. Was `.ac-perks__marquee` — an overflow:hidden window over a
+   `width: fit-content` track animated with @keyframes ac-marquee, which showed
+   the perks a slice at a time and clipped one at each end. Now a plain wrapping
+   flex row: one line on desktop, two or three at 375px, never wider than the
+   band. The animation, the track, the duplicated set, the interpunct dots and
+   the prefers-reduced-motion rule that paused the whole thing are all gone —
+   there is no longer any motion to reduce.
+
+   The row gap is the vertical one: wrapped lines need more separation from each
+   other than perks need from their neighbours on the same line. */
+.ac-perks__list {
   display: flex;
-  width: fit-content;
-  animation: ac-marquee var(--ac-marquee-speed, 20s) linear infinite;
-}
-.ac-perks__set {
-  display: flex;
+  flex-wrap: wrap;
   align-items: center;
-  gap: 16px;
-  padding: 8px 0;
-  padding-right: 16px;
+  gap: 8px 16px;
+  padding: 10px 14px;
 }
+
+/* COLOR. The theme sets `body * { color: var(--color__text-light) }` at
+   specificity (0,0,1), which reaches every descendant directly and beats
+   inheritance from the scheme class on .ac-perks__list. So each element below
+   restates its own color: a class selector is (0,1,0) and wins, and `inherit`
+   takes whichever scheme the merchant picked for the band rather than pinning
+   a literal that would be wrong the moment they switch it. */
 .ac-perks__item {
   display: flex;
   align-items: center;
   gap: 6px;
   white-space: nowrap;
+  color: inherit;
   font-family: var(--ac-font-body);
   font-size: calc(0.8125 * var(--font-body-scale, 1) * 1rem);
   font-weight: var(--font-body-weight, 400);
 }
-.ac-perks__item svg {
+/* `stroke: currentColor` resolves against this element's OWN color, so without
+   the inherit above it the check would be stroked in the body rule's color
+   while the label beside it reads correctly. */
+.ac-perks__check {
   width: 14px;
   height: 14px;
+  color: inherit;
   stroke: currentColor;
   fill: none;
   stroke-width: 2;
   stroke-linecap: round;
   stroke-linejoin: round;
   flex-shrink: 0;
-}
-.ac-perks__dot {
-  width: 4px;
-  height: 4px;
-  border-radius: 50%;
-  background: currentColor;
-  opacity: 0.3;
-  flex-shrink: 0;
-}
-@keyframes ac-marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-@media (prefers-reduced-motion: reduce) {
-  .ac-perks__track {
-    animation-play-state: paused;
-  }
 }
 
 /* --- VARIANT CARDS --- */
@@ -904,22 +901,19 @@
   margin-bottom: var(--jc-bb-space-2xs);
 }
 
-/* --- Subscriber perks marquee ----------------------------------------------
-   The block sits between the plan rows and the CTA. min-width:0 is the point:
-   the buy column is a flex container, its items default to min-width:auto, and
-   an item whose content is wider than the column (the marquee track is sized
-   `width: fit-content`) refuses to shrink and pushes past the right edge. */
+/* --- Subscriber perks ------------------------------------------------------
+   The block sits between the plan rows and the CTA. min-width:0 is still the
+   point: the buy column is a flex container and its items default to
+   min-width:auto, so a child refuses to shrink below its content width. The
+   perk row wraps now instead of running on forever, so there is nothing left to
+   clip — the overflow:hidden that used to contain the marquee track, and the
+   .ac-perks__marquee window it contained, are both gone. */
 .jc-bb-perks {
   min-width: 0;
   max-width: 100%;
-  overflow: hidden;
   margin-top: var(--jc-bb-space-lg);
 }
 .jc-bb-perks .ac-perks {
-  max-width: 100%;
-}
-.jc-bb-perks .ac-perks__marquee {
-  overflow: hidden;
   max-width: 100%;
 }
 

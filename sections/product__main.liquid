@@ -364,12 +364,11 @@
 
                   {% when 'perks' %}
                     {% comment %}
-                      The marquee track is sized `width: fit-content`, so it is
-                      wider than the column by design. The buy column is a flex
-                      container and its items default to min-width:auto, which
-                      means an over-wide item refuses to shrink and pushes past
-                      the right edge instead of being clipped. .jc-bb-perks is
-                      the containing block that stops it.
+                      The perk row wraps, so nothing overflows the column any
+                      more. .jc-bb-perks is still here for min-width:0: the buy
+                      column is a flex container and its items default to
+                      min-width:auto, which stops a child shrinking below its
+                      own content width.
                     {% endcomment %}
                     <div class="jc-bb-perks">
                       {% render 'product-perks-marquee', block: block %}
@@ -786,12 +785,11 @@
 
                       {% when 'perks' %}
                         {% comment %}
-                          The marquee track is sized `width: fit-content`, so it is
-                          wider than the column by design. The buy column is a flex
-                          container and its items default to min-width:auto, which
-                          means an over-wide item refuses to shrink and pushes past
-                          the right edge instead of being clipped. .jc-bb-perks is
-                          the containing block that stops it.
+                          The perk row wraps, so nothing overflows the column any
+                          more. .jc-bb-perks is still here for min-width:0: the buy
+                          column is a flex container and its items default to
+                          min-width:auto, which stops a child shrinking below its
+                          own content width.
                         {% endcomment %}
                         <div class="jc-bb-perks">
                           {% render 'product-perks-marquee', block: block %}
@@ -5476,7 +5474,7 @@
     },
     {
       "type": "perks",
-      "name": "Perks Marquee",
+      "name": "Subscriber Perks",
       "limit": 1,
       "settings": [
         {
@@ -5518,20 +5516,6 @@
           "id": "perk_5",
           "label": "Perk 5",
           "default": "Priority customer support"
-        },
-        {
-          "type": "header",
-          "content": "t:general.headers.style.content"
-        },
-        {
-          "type": "range",
-          "id": "speed",
-          "min": 10,
-          "max": 40,
-          "step": 2,
-          "unit": "s",
-          "label": "Scroll speed",
-          "default": 20
         },
         {
           "type": "header",
@@ -5580,12 +5564,12 @@
         },
         {
           "type": "header",
-          "content": "Marquee"
+          "content": "Perk row"
         },
         {
           "type": "select",
           "id": "marquee_color_scheme",
-          "label": "Marquee color scheme",
+          "label": "Perk row color scheme",
           "options": [
             { "value": "color__bg-body color__text", "label": "t:general.settings.color_scheme.body.label" },
             { "value": "color__bg-neutral color__text", "label": "t:general.settings.color_scheme.neutral.label" },
@@ -5604,7 +5588,7 @@
         {
           "type": "range",
           "id": "marquee_font_size",
-          "label": "Marquee font size",
+          "label": "Perk font size",
           "min": 10,
           "max": 18,
           "step": 1,
@@ -5614,7 +5598,7 @@
         {
           "type": "select",
           "id": "marquee_font_weight",
-          "label": "Marquee font weight",
+          "label": "Perk font weight",
           "options": [
             { "value": "400", "label": "Regular" },
             { "value": "500", "label": "Medium" },

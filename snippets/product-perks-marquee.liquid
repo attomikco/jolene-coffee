@@ -1,6 +1,17 @@
 <!-- snippets/product-perks-marquee.liquid -->
 {% comment %}
-  Scrolling marquee of perks/benefits with configurable items.
+  Static row of perks/benefits with configurable items.
+
+  WAS A MARQUEE. The perks scrolled on an infinite `ac-marquee` animation
+  inside an overflow:hidden window, which meant the row was only ever readable
+  a slice at a time — and at any given moment the leading perk was cut off on
+  the left while the trailing one ran past the right. They are all readable at
+  once now, wrapping to as many lines as the column needs. Nothing animates.
+
+  The file name still says "marquee" and the block type is still `perks`:
+  sections/product__main.liquid renders this snippet by name in two places and
+  templates/product.json binds the block by type, so both names are load
+  bearing. Renaming either is a separate change.
 
   Accepts:
   - block: {object} The block object with settings.
@@ -11,7 +22,6 @@
 
 {%- liquid
   assign label = block.settings.label | default: 'Subscriber Perks'
-  assign speed = block.settings.speed | default: 20
   assign items_str = ''
   if block.settings.perk_1 != blank
     assign items_str = items_str | append: block.settings.perk_1 | append: '|||'
@@ -57,6 +67,11 @@
     class="w-full"
     {{ block.shopify_attributes }}
   >
+    {% comment %}
+      `overflow: hidden` stays, but it is no longer a scroll window — it is
+      what clips the header's dark background into the rounded top corners.
+      Dropping it square off the top of the band.
+    {% endcomment %}
     <div
       class="ac-perks"
       style="
@@ -76,26 +91,31 @@
           "
         >{{ label }}</span>
       </div>
-      <div class="ac-perks__marquee {{ block.settings.marquee_color_scheme }}">
-        <div class="ac-perks__track" style="--ac-marquee-speed: {{ speed }}s;">
-          {% for pass in (1..2) %}
-            <div class="ac-perks__set">
-              {% for item in items_array %}
-                <div
-                  class="ac-perks__item"
-                  style="
-                    font-size: {{ block.settings.marquee_font_size }}px;
-                    font-weight: {{ block.settings.marquee_font_weight }};
-                  "
-                >
-                  <svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
-                  {{ item }}
-                </div>
-                <div class="ac-perks__dot"></div>
-              {% endfor %}
-            </div>
-          {% endfor %}
-        </div>
+      {% comment %}
+        One pass. The set used to be rendered twice so translateX(-50%) could
+        loop without a seam; with the animation gone the duplicate was just the
+        same perks listed twice.
+
+        No interpunct separators between items. They were reachable only as
+        elements in the flex row or as ::after on each item, and in a WRAPPING
+        row both strand — a separator ends up first or last on a line whenever
+        the wrap lands next to one, and CSS cannot ask "is my neighbour on my
+        line?". The per-item check icon already marks where each perk starts,
+        so the row is spaced with `gap` instead.
+      {% endcomment %}
+      <div class="ac-perks__list {{ block.settings.marquee_color_scheme }}">
+        {% for item in items_array %}
+          <div
+            class="ac-perks__item"
+            style="
+              font-size: {{ block.settings.marquee_font_size }}px;
+              font-weight: {{ block.settings.marquee_font_weight }};
+            "
+          >
+            <svg class="ac-perks__check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            {{ item }}
+          </div>
+        {% endfor %}
       </div>
     </div>
   </div>
