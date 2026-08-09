@@ -38,6 +38,54 @@
   "
 {% endcapture %}
 
+{% comment %}
+  Which app blocks the buy box overrules.
+
+  The jc-bb-* buy box owns the whole purchase decision — Step 1 (size tiles),
+  Step 2 (plan rows), and the CTA — so an app block dropped into that stretch of
+  the template is offering the shopper a second, competing set of purchase
+  controls. PayWhirl's plan selector is the one that is actually in this
+  template today, and it is redundant: jc-buybox-plans posts the same Shopify
+  selling plan ids the app created, so the subscription wiring is untouched and
+  only the widget's own UI is replaced.
+
+  This used to be an `unless block.id contains 'paywhirl'` guard, which named
+  one vendor. That failed OPEN: swap PayWhirl for another subscriptions app and
+  the substring stops matching, both UIs render, and nothing says so. Keyed to
+  POSITION instead, any app block sitting in the purchase region is overruled
+  whoever ships it.
+
+  The region runs from the first purchase control (variant_cards or options) to
+  the CTA (add), exclusive of both ends. It is collected here as a list of block
+  ids rather than compared with forloop.index0 at the point of use, because the
+  three render sites sit inside different loops and an id list cannot be thrown
+  off by loop nesting. Ids are stored comma-terminated and matched with their
+  comma so one id cannot prefix-match another.
+
+  Klaviyo's average-rating block is an app block too, and it sits above the
+  checklist — outside the region — so it is untouched. Any app block outside the
+  region still renders exactly as before; this narrows nothing but the stretch
+  the buy box already owns.
+
+  If the region ever has no `add` block to close it, it runs to the end of the
+  template rather than being abandoned — the fail-closed direction.
+{% endcomment %}
+{%- liquid
+  assign jc_owned_app_ids = ''
+  assign jc_in_buy_region = false
+  for b in section.blocks
+    if b.type == 'add'
+      assign jc_in_buy_region = false
+    endif
+    if jc_in_buy_region and b.type == '@app'
+      assign jc_owned_app_ids = jc_owned_app_ids | append: b.id | append: ','
+    endif
+    if b.type == 'variant_cards' or b.type == 'options'
+      assign jc_in_buy_region = true
+    endif
+  endfor
+-%}
+
 {% comment %} Create product script, assign correct gallery style, set column widths {% endcomment %}
 {% liquid
   capture script_product
@@ -404,13 +452,25 @@
                       from the template is the only handle that tells one app
                       block from another without editing templates/product.json.
                     {% endcomment %}
-                    {% unless block.id contains 'paywhirl' %}
-                      {% if block.id contains 'rating' %}
-                        <div {{ jc_rating_attrs }}>{% render block %}</div>
-                      {% else %}
-                        <div class="p-4">{% render block %}</div>
+                    {%- assign jc_app_key = block.id | append: ',' -%}
+                    {% if jc_owned_app_ids contains jc_app_key %}
+                      {% comment %}
+                        Overruled by the buy box. Silent for shoppers, named in the theme
+                        editor so a merchant who adds an app block here is not left guessing
+                        why nothing appeared.
+                      {% endcomment %}
+                      {% if request.design_mode %}
+                        <div style="margin:8px 0;padding:10px 12px;border:1px dashed #9a9a9a;border-radius:6px;background:#fff;color:#1d1d1e;font:400 12px/1.4 sans-serif;">
+                          App block hidden here: this theme's buy box owns the purchase
+                          options (Step 1 and Step 2) and would render them twice. Move the
+                          block above the size tiles or below Add to cart to show it.
+                        </div>
                       {% endif %}
-                    {% endunless %}
+                    {% elsif block.id contains 'rating' %}
+                      <div {{ jc_rating_attrs }}>{% render block %}</div>
+                    {% else %}
+                      <div class="p-4">{% render block %}</div>
+                    {% endif %}
                 {% endcase %}
               </div>
             {% endunless %}
@@ -595,13 +655,25 @@
 
                       {% when '@app' %}
                         {% if settings.app_block_column == 'left_column' %}
-                          {% unless block.id contains 'paywhirl' %}
-                            {% if block.id contains 'rating' %}
-                              <div {{ jc_rating_attrs }}>{% render block %}</div>
-                            {% else %}
-                              <div class="p-4">{% render block %}</div>
+                          {%- assign jc_app_key = block.id | append: ',' -%}
+                          {% if jc_owned_app_ids contains jc_app_key %}
+                            {% comment %}
+                              Overruled by the buy box. Silent for shoppers, named in the theme
+                              editor so a merchant who adds an app block here is not left guessing
+                              why nothing appeared.
+                            {% endcomment %}
+                            {% if request.design_mode %}
+                              <div style="margin:8px 0;padding:10px 12px;border:1px dashed #9a9a9a;border-radius:6px;background:#fff;color:#1d1d1e;font:400 12px/1.4 sans-serif;">
+                                App block hidden here: this theme's buy box owns the purchase
+                                options (Step 1 and Step 2) and would render them twice. Move the
+                                block above the size tiles or below Add to cart to show it.
+                              </div>
                             {% endif %}
-                          {% endunless %}
+                          {% elsif block.id contains 'rating' %}
+                            <div {{ jc_rating_attrs }}>{% render block %}</div>
+                          {% else %}
+                            <div class="p-4">{% render block %}</div>
+                          {% endif %}
                         {% endif %}
                     {% endcase %}
                   </div>
@@ -817,13 +889,25 @@
                       {% when '@app' %}
                         {% comment %} PayWhirl's own selector is replaced by jc-buybox-plans. {% endcomment %}
                         {% if settings.app_block_column == 'right_column' %}
-                          {% unless block.id contains 'paywhirl' %}
-                            {% if block.id contains 'rating' %}
-                              <div {{ jc_rating_attrs }}>{% render block %}</div>
-                            {% else %}
-                              <div class="p-4">{% render block %}</div>
+                          {%- assign jc_app_key = block.id | append: ',' -%}
+                          {% if jc_owned_app_ids contains jc_app_key %}
+                            {% comment %}
+                              Overruled by the buy box. Silent for shoppers, named in the theme
+                              editor so a merchant who adds an app block here is not left guessing
+                              why nothing appeared.
+                            {% endcomment %}
+                            {% if request.design_mode %}
+                              <div style="margin:8px 0;padding:10px 12px;border:1px dashed #9a9a9a;border-radius:6px;background:#fff;color:#1d1d1e;font:400 12px/1.4 sans-serif;">
+                                App block hidden here: this theme's buy box owns the purchase
+                                options (Step 1 and Step 2) and would render them twice. Move the
+                                block above the size tiles or below Add to cart to show it.
+                              </div>
                             {% endif %}
-                          {% endunless %}
+                          {% elsif block.id contains 'rating' %}
+                            <div {{ jc_rating_attrs }}>{% render block %}</div>
+                          {% else %}
+                            <div class="p-4">{% render block %}</div>
+                          {% endif %}
                         {% endif %}
                     {% endcase %}
                   </div>
