@@ -572,9 +572,43 @@
   text-transform: uppercase;
   color: var(--jc-bb-muted);
 }
+/* The spec line, as a pill. Type stays exactly the shared nav-label treatment
+   above — the same one "STEP 1 · HOW MANY" uses — and only the container
+   changes.
+
+   LINE HEIGHT IS THE ALIGNMENT FIX. It was --spacing__font-smaller, a ratio of
+   1.625, which wrapped 10.7px of cap ink in a 23.6px line box: 6.4px of dead
+   leading above the caps and 14.5px below before the title, measured on the
+   rendered page. The 8px margin was doing what it said, but it was measured
+   from a box six pixels taller than the glyphs on each side, so the label read
+   as floating low against the title. Near-1 for the same reason the
+   certification chips use it — the pill's height is its padding, not its
+   leading — but not 1, so a long string that wraps to two lines does not
+   collide with itself.
+
+   NOT the interpunct: measured against Inter's own metrics at this size, the
+   `·` ink centre sits 0.28px below the cap optical centre, i.e. already centred
+   to within 3% of cap height. Nudging it would introduce the error it was
+   supposed to remove.
+
+   COLOUR is restated here rather than left to the shared rule above, per the
+   standing rule, and the background is an existing token. Outlined cream rather
+   than a solid fill: the certification chips further down are solid
+   var(--jc-bb-tan), so a second solid pill in the same family would read as one
+   of them. Same shape and padding to stay related, different weight of fill to
+   stay distinct.
+
+   No hover and no pointer cursor: it is a spec, not a control. */
 .jc-bb-eyebrow {
-  display: block;
-  margin-bottom: var(--jc-bb-space-xs);
+  display: inline-block;
+  max-width: 100%;
+  line-height: 1.15;
+  padding: 7px 12px;
+  border-radius: var(--ac-radius-pill);
+  background: var(--jc-bb-cream);
+  border: 1px solid var(--jc-bb-hairline);
+  color: var(--jc-bb-muted);
+  margin-bottom: var(--jc-bb-space-sm);
 }
 .jc-bb-step {
   display: block;
