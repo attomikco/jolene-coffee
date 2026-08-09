@@ -138,15 +138,11 @@
   line-height: 1.5;
 }
 
-/* --- PRODUCT PERKS --- */
+/* --- PRODUCT PERKS MARQUEE --- */
 .ac-perks {
   border-radius: var(--ac-radius-lg);
   overflow: hidden;
   margin: 8px 16px;
-  /* Query container for the perk grid below — the band's own width is what
-     decides one column or two. */
-  container-type: inline-size;
-  container-name: jc-perks;
 }
 .ac-perks__header {
   display: flex;
@@ -183,59 +179,33 @@
   stroke-linejoin: round;
   flex-shrink: 0;
 }
-/* The perk grid. Was `.ac-perks__marquee` — an overflow:hidden window over a
-   `width: fit-content` track animated with @keyframes ac-marquee, which showed
-   the perks a slice at a time and clipped one at each end. The animation, the
-   track, the duplicated set, the interpunct dots and the prefers-reduced-motion
-   rule that paused it are all gone; there is no longer any motion to reduce.
-
-   Explicit columns rather than flex wrap. Wrapping put each perk wherever it
-   happened to fit, so the check icons landed at a different x on every line;
-   columns give them one edge to line up on, which `justify-items: start`
-   enforces (the default `stretch` would centre the text inside a full-width
-   cell and undo it).
-
-   The row gap is the taller of the two: stacked perks need more separation from
-   each other than a perk needs from its neighbour across the gutter. */
-.ac-perks__list {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  justify-items: start;
+.ac-perks__marquee {
+  overflow: hidden;
+}
+.ac-perks__track {
+  display: flex;
+  width: fit-content;
+  animation: ac-marquee var(--ac-marquee-speed, 20s) linear infinite;
+}
+.ac-perks__set {
+  display: flex;
   align-items: center;
-  gap: 8px 16px;
-  padding: 10px 14px;
+  gap: 16px;
+  padding: 8px 0;
+  padding-right: 16px;
 }
 
-/* Two columns once the BAND is wide enough — a container query, not a viewport
-   one, because the perks sit in the buy column and the buy column's width does
-   not track the viewport's. The PDP goes two-column at 768px, and the column it
-   creates there is 321px: NARROWER than the 343px the same band gets on a 375px
-   phone. A `min-width: 768px` media query would therefore switch to two columns
-   at exactly the width where there is least room for them. Keyed to the band, a
-   phone and a 768px tablet both correctly get one column, and the split only
-   appears on a genuinely wide column.
+/* COLOR. Kept from the static-row version and deliberately not reverted with
+   the rest of it: the standing rule is that anything in this band carries its
+   own colour declaration rather than relying on inheritance, because the
+   compiled bundle ships an unscoped `body * { color: var(--color__text-light) }`
+   at (0,0,1) which overrides inherited values on every descendant.
 
-   480px is the measured threshold: two columns have to hold the longest perk
-   (~215px) side by side, plus the 16px gutter and 28px of padding. With five
-   perks the row flow puts 1/3/5 in the left column and 2/4 in the right — the
-   3/2 split. The container itself is declared on .ac-perks above. */
-@container jc-perks (min-width: 480px) {
-  .ac-perks__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-/* COLOR. Each element below restates its own color instead of relying on the
-   cascade from .ac-perks__list. The compiled bundle ships an unscoped
-   `body * { color: var(--color__text-light) }` at specificity (0,0,1) — see the
-   jc-bundle note further down — and wherever that sheet is in play it re-sets
-   color on every descendant, so inheritance from the scheme class on the row is
-   lost. Measured on the PDP it is not currently winning here (an unstyled span
-   dropped into the dark header still comes out light), so these are insurance
-   rather than a repair for a visible bug: a class selector is (0,1,0) and beats
-   it if it ever does apply, and `inherit` follows whichever scheme the merchant
-   picks for the band instead of pinning a literal that would be wrong the
-   moment they switch it. */
+   It does not currently win inside this band — the strip sits under a `color__*`
+   scheme class whose CSS targets descendants and outranks it. But it does win
+   wherever no scheme class intervenes: it is exactly what made the Add to cart
+   label render #1d1d1e on a #17150F button. So these stay as insurance, and
+   `inherit` follows whichever scheme the merchant picks for the strip. */
 .ac-perks__item {
   display: flex;
   align-items: center;
@@ -247,8 +217,10 @@
   font-weight: var(--font-body-weight, 400);
 }
 /* `stroke: currentColor` resolves against this element's OWN color, so without
-   the inherit above it the check would be stroked in the body rule's color
-   while the label beside it reads correctly. */
+   its own inherit the check would be stroked in the body rule's colour while
+   the label beside it reads correctly. The class is kept on the svg for that
+   reason — the pre-marquee markup styled it as a bare `.ac-perks__item svg`,
+   which cannot carry the standing-rule declaration. */
 .ac-perks__check {
   width: 14px;
   height: 14px;
@@ -259,6 +231,24 @@
   stroke-linecap: round;
   stroke-linejoin: round;
   flex-shrink: 0;
+}
+.ac-perks__dot {
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: currentColor;
+  color: inherit;
+  opacity: 0.3;
+  flex-shrink: 0;
+}
+@keyframes ac-marquee {
+  0% { transform: translateX(0); }
+  100% { transform: translateX(-50%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .ac-perks__track {
+    animation-play-state: paused;
+  }
 }
 
 /* --- VARIANT CARDS --- */
@@ -975,19 +965,22 @@
   margin-bottom: var(--jc-bb-space-2xs);
 }
 
-/* --- Subscriber perks ------------------------------------------------------
-   The block sits between the plan rows and the CTA. min-width:0 is still the
-   point: the buy column is a flex container and its items default to
-   min-width:auto, so a child refuses to shrink below its content width. The
-   perk row wraps now instead of running on forever, so there is nothing left to
-   clip — the overflow:hidden that used to contain the marquee track, and the
-   .ac-perks__marquee window it contained, are both gone. */
+/* --- Subscriber perks marquee ----------------------------------------------
+   The block sits between the plan rows and the CTA. min-width:0 is the point:
+   the buy column is a flex container, its items default to min-width:auto, and
+   an item whose content is wider than the column (the marquee track is sized
+   `width: fit-content`) refuses to shrink and pushes past the right edge. */
 .jc-bb-perks {
   min-width: 0;
   max-width: 100%;
+  overflow: hidden;
   margin-top: var(--jc-bb-space-lg);
 }
 .jc-bb-perks .ac-perks {
+  max-width: 100%;
+}
+.jc-bb-perks .ac-perks__marquee {
+  overflow: hidden;
   max-width: 100%;
 }
 
