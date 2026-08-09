@@ -915,7 +915,33 @@
   color: var(--jc-bb-muted);
   margin-top: var(--jc-bb-space-2xs);
 }
-.jc-bb-plan__right { flex: 0 0 auto; text-align: right; }
+/* This block was `flex: 0 0 auto` with the price and the savings note sitting
+   INLINE on one line. Two things followed. Its max-content came to 216px (68px
+   price + 144px "save $3.60 per order" side by side), and flex-shrink: 0 meant
+   it kept every pixel of that however tight the row got. In the 321px buy
+   column at 768 the row had 245px to divide after the radio and gaps, so the
+   right block took 216 and left the title 29px — and since the theme sets
+   overflow-wrap: break-word, "Subscribe" then broke mid-word down a 28px
+   column, 10 lines tall, in a 524px-tall row.
+
+   The label column was never the problem: .jc-bb-plan__body already carries
+   min-width: 0 and flex: 1 1 auto, so it was shrinking correctly — into
+   whatever the right block deigned to leave it. Only the subscribe row
+   collapsed, because the one-time row has no savings note and its right block
+   is just the 68px price.
+
+   Stacking the price over the note drops the max-content from 216 to 144, and
+   flex-shrink: 1 lets it give back more when the column is genuinely tight.
+   min-width stays `auto` on purpose — that floors the block at its min-content,
+   which is the price, so the price can never be squeezed or broken however
+   narrow things get. */
+.jc-bb-plan__right {
+  flex: 0 1 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+}
 .jc-bb-plan__price {
   font-family: var(--type__font-header-family);
   font-style: var(--type__font-header-style);
