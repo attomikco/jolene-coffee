@@ -184,6 +184,18 @@
     return Shopify.formatMoney(cents, false);
   },
 
+  {%- comment -%}
+    Whole-dollar money, for the shipping gap only. That value is rounded to a
+    whole dollar before it reaches here, so the cents are always zero and
+    printing them ("$28.00 away") is noise. Strips the decimal group off the
+    theme's own formatted string rather than assembling "$" + n here, so the
+    symbol, thousands separator and decimal separator stay whatever the store's
+    money format says they are.
+  {%- endcomment -%}
+  jcMoneyWhole(cents) {
+    return this.jcMoney(cents).replace(/([.,])00(?!\d)/, '');
+  },
+
   jcEffective(v) {
     if (!v) return 0;
     if (this.jc_plan_id) {
@@ -353,16 +365,32 @@
   },
 
   {%- comment -%}
-    Free shipping. Subscriptions ship free regardless of subtotal, so the bar
-    goes green on the subscribe plan whatever the pack costs.
+    Free shipping. Measured against jc_price — the amount that will actually be
+    charged for this order: the variant price one-time, the selling plan's own
+    per_delivery_price on a subscription. Both come from jcEffective(), the same
+    getter behind the hero price and the size tiles, so the bar cannot claim a
+    total the column is not showing.
+
+    There is NO free-shipping-on-subscription rule. Subscriptions cross the same
+    threshold under the same shipping rules as a one-time order; this getter
+    used to return true for any selected plan, which fills the bar on every pack
+    regardless of price. A subscribed pack that lands under the threshold has to
+    say so.
   {%- endcomment -%}
   get jc_ships_free() {
-    if (this.jc_plan_id) return true;
     if (!this.jc_fs_threshold) return true;
     return this.jc_price >= this.jc_fs_threshold;
   },
+
+  {%- comment -%}
+    Rounded UP to the whole dollar. The gap can be cents — a subscribed 24-pack
+    lands 61c short — and neither "$0.61" nor a floored "$0 away" is a thing to
+    tell a shopper, the second one flatly contradicting the bar beside it.
+    Rounding up always names an amount that genuinely clears the threshold.
+  {%- endcomment -%}
   get jc_ship_gap() {
-    return this.jc_ships_free ? 0 : this.jc_fs_threshold - this.jc_price;
+    if (this.jc_ships_free) return 0;
+    return Math.ceil((this.jc_fs_threshold - this.jc_price) / 100) * 100;
   },
   get jc_ship_pct() {
     if (this.jc_ships_free || !this.jc_fs_threshold) return 100;

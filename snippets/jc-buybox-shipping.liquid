@@ -10,8 +10,10 @@
   the cart drawer's progress bar reads. The block renders nothing when no
   threshold is configured.
 
-  Subscriptions ship free regardless of subtotal, so the bar fills green on the
-  subscribe plan whatever the pack costs.
+  The bar tracks the effective price of the current selection — the variant
+  price one-time, the selling plan's per-delivery price on a subscription.
+  Subscriptions get no shipping exemption; they clear the same threshold on the
+  same rules, so a subscribed pack that falls under it shows the gap.
 
   Usage:
     {% render 'jc-buybox-shipping' %}
@@ -41,7 +43,7 @@
       <span
         class="jc-bb-ship__label"
         :class="jc_ships_free ? 'is-free' : 'is-gap'"
-        x-text="jc_ships_free ? 'Ships free' : `${jcMoney(jc_ship_gap)} to free shipping`"
+        x-text="jc_ships_free ? 'Ships free' : `${jcMoneyWhole(jc_ship_gap)} away from free shipping`"
       ></span>
     </div>
   </div>
