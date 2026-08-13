@@ -309,13 +309,7 @@
                     {% render 'product__liquid', block: block %}
 
                   {% when 'upsell' %}
-                    {% comment %}
-                      "You may also like" leaves the buy column. The product
-                      template already ends with a full-width product-slider
-                      section under the same heading, so the recommendations are
-                      merged into that rather than duplicated in a narrow stack
-                      halfway up the column.
-                    {% endcomment %}
+                    {% render 'product__upsell', block: block %}
 
                   {% when 'options' %}
                     {% assign has_variant_cards = false %}
@@ -574,13 +568,7 @@
                         {% render 'product__liquid', block: block %}
 
                       {% when 'upsell' %}
-                        {% comment %}
-                          "You may also like" leaves the buy column. The product
-                          template already ends with a full-width product-slider
-                          section under the same heading, so the recommendations are
-                          merged into that rather than duplicated in a narrow stack
-                          halfway up the column.
-                        {% endcomment %}
+                        {% render 'product__upsell', block: block %}
 
                       {% when 'options' %}
                         {% assign has_variant_cards = false %}
@@ -779,13 +767,7 @@
                         {% render 'product__liquid', block: block %}
 
                       {% when 'upsell' %}
-                        {% comment %}
-                          "You may also like" leaves the buy column. The product
-                          template already ends with a full-width product-slider
-                          section under the same heading, so the recommendations are
-                          merged into that rather than duplicated in a narrow stack
-                          halfway up the column.
-                        {% endcomment %}
+                        {% render 'product__upsell', block: block %}
 
                       {% when 'options' %}
                         {% assign hide_options = false %}
