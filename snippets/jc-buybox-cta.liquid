@@ -110,8 +110,8 @@
       :disabled="button_loading || !jc_can_add"
       @click="jcAddToCart()"
     >
-      <span>Add to cart</span>
-      <span aria-hidden="true" style="margin:0 0.5em;">&middot;</span>
+      <span class="jc-bb-cta__label">Add to cart</span>
+      <span class="jc-bb-cta__sep" aria-hidden="true">&middot;</span>
       <span class="jc-bb-cta__price" x-text="jcMoney(jc_price * quantity)"></span>
     </button>
   </div>

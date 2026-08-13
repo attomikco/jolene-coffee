@@ -862,6 +862,17 @@
   column-gap: var(--jc-bb-space-xs);
   padding-top: 0;
 }
+/* Four across is a desktop-column width, not a phone-column width: the mobile
+   buy column is the same 321-343px this section's own comment measured above,
+   and four tiles there leave each tile too narrow to read. This is the block
+   rendered into .block-{{position}} (mobile-only; see product__main.liquid),
+   so the desktop instance of .jc-bb-sizes, hidden below 768px, is unaffected. */
+@media (max-width: 767px) {
+  .jc-bb-sizes .ac-vc-grid,
+  .jc-bb-sizes .ac-vc-grid[class] {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+}
 .jc-bb-sizes .ac-vc-card { padding: 18px 6px 12px; }
 /* The per-can rate and its percentage sit on their own lines, and the savings
    line is always present even when blank. Without it the smallest pack — the
@@ -1220,6 +1231,9 @@
   display: flex;
   gap: 8px;
   margin-top: 4px;
+  /* The eyebrow pill (.jc-bb-eyebrow) follows immediately in the block order
+     and carries no margin-top of its own, so this strip owns the gap above it. */
+  margin-bottom: var(--jc-bb-space-md);
   /* Cancel the px-4 (1rem) that snippets/product__liquid.liquid puts on the
      block wrapper so the strip spans the full container, then re-apply the
      gallery's own gap as padding. Net effect: the first thumbnail lines up
