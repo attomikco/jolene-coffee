@@ -1,1 +1,154 @@
-{"current":{"color_background_body":"#faf6ef","color_foreground_body":"#1d1d1e","color_foreground_body_alt":"#ffffff","color_background_primary":"#1d1d1e","color_foreground_primary":"#faf6ef","color_background_secondary":"#ffc600","color_foreground_secondary":"#1d1d1e","color_background_tertiary":"#f3dfbf","color_foreground_tertiary":"#1a1a1a","color_bar":"#faf6ef","color_background_overlay":"linear-gradient(0deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2) 100%)","border_button_radius":5,"border_input_radius":5,"border_element_radius":5,"border_button_width":1,"input_field_color_background":"color__bg-shade-2","input_field_border":"full","type_font_body":"inter_n4","type_font_heading":"inter_n9","type_font_nav":"inter_n8","type_heading_capitilization":"uppercase","type_nav_capitilization":"uppercase","type_button_capitilization":"uppercase","type_icon_style":"sharp","header_links_mobile":"main-menu","header_position":"sticky","x_alignment":"flex justify-center","x_margin":"window","gap_size":10,"animate_header":"none","favicon":"shopify://shop_images/Jolene_Coffe_Logo_1.png","product_card_color_scheme":"color__bg-body color__text","product_card_color_border":"","product_card_ratio":"aspect-[1/1] aspect-w-1 aspect-h-1","product_card_alignment":"center","product_card_enable_hover":false,"product_card_show_prices":false,"price_range":"show_starting_price","close_button_content":"icon","social_instagram_link":"https://instagram.com/jolenecoffee","social_facebook_link":"https://www.facebook.com/thejolenecoffee/","social_linkedin_link":"https://www.linkedin.com/company/jolene-coffee/","pdp_free_shipping_threshold":"55","sections":{"theme__cart":{"type":"theme__cart","blocks":{"progress_bar_L6aRaD":{"type":"progress_bar","settings":{"threshold":55,"calculation":"total","success":"Nice — free shipping unlocked."}},"upsell_featured_WAzUJb":{"type":"upsell_featured","settings":{"products":"our-coffee","upsell_type":"stacked"}}},"block_order":["progress_bar_L6aRaD","upsell_featured_WAzUJb"],"settings":{"top_color_scheme":"color__bg-primary color__primary","top_color_border":"color__border-divider-1","main_color_scheme_first":"color__bg-body color__text","main_color_scheme_second":"color__bg-body color__text","main_color_border":"color__border-divider-1","main_enable_cart_note":false,"main_enable_cart_share":false,"main_enable_cart_sku":false,"bottom_color_scheme":"color__bg-body color__text","bottom_color_border":"color__border-divider-1","bottom_color_button":"btn","cart_button_behavior":"checkout","bottom_disclaimer":"","show_continue_shopping_button":true,"show_button_prices":true,"show_cart_subtotals":true}},"theme__menu":{"type":"theme__menu","settings":{"top_color_scheme":"color__bg-body color__text","top_color_border":"color__border-divider-1","main_color_scheme":"color__bg-body color__text","main_color_border":"color__border-divider-1","main_font":"type__body","show_search":true,"show_chevrons":true,"bottom_color_scheme":"color__bg-overlay-1 color__text","bottom_color_border":"color__border-divider-1"}},"theme__search":{"type":"theme__search","settings":{"search_links":"","top_color_scheme":"color__bg-body color__text","top_color_border":"color__border-divider-1","main_color_scheme":"color__bg-body color__text","main_color_border":"color__border-divider-1","enable_second_column":false}}},"content_for_index":[],"blocks":{"855628211100114053":{"type":"shopify://apps/klaviyo-email-marketing-sms/blocks/klaviyo-onsite-embed/2632fe16-c075-4321-a88b-50b567f42507","disabled":false,"settings":{}},"9108694385781200119":{"type":"shopify://apps/moast/blocks/embed/1ac7547b-5443-446c-868c-7fab4566ee16","disabled":false,"settings":{}},"12107416968155278870":{"type":"shopify://apps/paywhirl-subscriptions/blocks/paywhirl-customer-portal/41e95d60-82cf-46e8-84de-618d7e4c37b7","disabled":false,"settings":{"show_subscriptions_link":false,"show_customer_login_note":false,"show_address_change_note":false,"container_selector":"main"}}}},"presets":{},"platform_customizations":{"custom_css":["button[title=\"Close\"] svg path {fill: #fff;}"]}}
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "current": {
+    "color_background_body": "#faf6ef",
+    "color_foreground_body": "#1d1d1e",
+    "color_foreground_body_alt": "#ffffff",
+    "color_background_primary": "#1d1d1e",
+    "color_foreground_primary": "#faf6ef",
+    "color_background_secondary": "#ffc600",
+    "color_foreground_secondary": "#1d1d1e",
+    "color_background_tertiary": "#f3dfbf",
+    "color_foreground_tertiary": "#1a1a1a",
+    "color_bar": "#faf6ef",
+    "color_background_overlay": "linear-gradient(0deg, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.2) 100%)",
+    "border_button_radius": 5,
+    "border_input_radius": 5,
+    "border_element_radius": 5,
+    "border_button_width": 1,
+    "input_field_color_background": "color__bg-shade-2",
+    "input_field_border": "full",
+    "type_font_body": "inter_n4",
+    "type_font_heading": "inter_n9",
+    "type_font_nav": "inter_n8",
+    "type_heading_capitilization": "uppercase",
+    "type_nav_capitilization": "uppercase",
+    "type_button_capitilization": "uppercase",
+    "type_icon_style": "sharp",
+    "header_links_mobile": "main-menu",
+    "header_position": "sticky",
+    "x_alignment": "flex justify-center",
+    "x_margin": "window",
+    "gap_size": 10,
+    "animate_header": "slide",
+    "favicon": "shopify://shop_images/Jolene_Coffe_Logo_1.png",
+    "product_card_color_scheme": "color__bg-body color__text",
+    "product_card_color_border": "",
+    "product_card_ratio": "aspect-[1/1] aspect-w-1 aspect-h-1",
+    "product_card_alignment": "center",
+    "product_card_enable_hover": false,
+    "product_card_show_prices": false,
+    "pdp_free_shipping_threshold": "55",
+    "price_range": "show_starting_price",
+    "close_button_content": "icon",
+    "social_instagram_link": "https://instagram.com/jolenecoffee",
+    "social_facebook_link": "https://www.facebook.com/thejolenecoffee/",
+    "social_linkedin_link": "https://www.linkedin.com/company/jolene-coffee/",
+    "sections": {
+      "theme__cart": {
+        "type": "theme__cart",
+        "blocks": {
+          "progress_bar_L6aRaD": {
+            "type": "progress_bar",
+            "settings": {
+              "threshold": 55,
+              "calculation": "total",
+              "success": "Nice — free shipping unlocked."
+            }
+          },
+          "upsell_featured_WAzUJb": {
+            "type": "upsell_featured",
+            "settings": {
+              "products": "our-coffee",
+              "upsell_type": "stacked"
+            }
+          }
+        },
+        "block_order": [
+          "progress_bar_L6aRaD",
+          "upsell_featured_WAzUJb"
+        ],
+        "settings": {
+          "top_color_scheme": "color__bg-primary color__primary",
+          "top_color_border": "color__border-divider-1",
+          "main_color_scheme_first": "color__bg-body color__text",
+          "main_color_scheme_second": "color__bg-body color__text",
+          "main_color_border": "color__border-divider-1",
+          "main_enable_cart_note": false,
+          "main_enable_cart_share": false,
+          "main_enable_cart_sku": false,
+          "bottom_color_scheme": "color__bg-body color__text",
+          "bottom_color_border": "color__border-divider-1",
+          "bottom_color_button": "btn",
+          "cart_button_behavior": "checkout",
+          "bottom_disclaimer": "",
+          "show_continue_shopping_button": true,
+          "show_button_prices": true,
+          "show_cart_subtotals": true
+        }
+      },
+      "theme__menu": {
+        "type": "theme__menu",
+        "settings": {
+          "top_color_scheme": "color__bg-body color__text",
+          "top_color_border": "color__border-divider-1",
+          "main_color_scheme": "color__bg-body color__text",
+          "main_color_border": "color__border-divider-1",
+          "main_font": "type__body",
+          "show_search": true,
+          "show_chevrons": true,
+          "bottom_color_scheme": "color__bg-overlay-1 color__text",
+          "bottom_color_border": "color__border-divider-1"
+        }
+      },
+      "theme__search": {
+        "type": "theme__search",
+        "settings": {
+          "search_links": "",
+          "top_color_scheme": "color__bg-body color__text",
+          "top_color_border": "color__border-divider-1",
+          "main_color_scheme": "color__bg-body color__text",
+          "main_color_border": "color__border-divider-1",
+          "enable_second_column": false
+        }
+      }
+    },
+    "content_for_index": [],
+    "blocks": {
+      "855628211100114053": {
+        "type": "shopify://apps/klaviyo-email-marketing-sms/blocks/klaviyo-onsite-embed/2632fe16-c075-4321-a88b-50b567f42507",
+        "disabled": false,
+        "settings": {}
+      },
+      "9108694385781200119": {
+        "type": "shopify://apps/moast/blocks/embed/1ac7547b-5443-446c-868c-7fab4566ee16",
+        "disabled": false,
+        "settings": {}
+      },
+      "12107416968155278870": {
+        "type": "shopify://apps/paywhirl-subscriptions/blocks/paywhirl-customer-portal/41e95d60-82cf-46e8-84de-618d7e4c37b7",
+        "disabled": false,
+        "settings": {
+          "show_subscriptions_link": false,
+          "show_customer_login_note": false,
+          "show_address_change_note": false,
+          "container_selector": "main"
+        }
+      }
+    }
+  },
+  "presets": {},
+  "platform_customizations": {
+    "custom_css": [
+      "button[title=\"Close\"] svg path {fill: #fff;}"
+    ]
+  }
+}
