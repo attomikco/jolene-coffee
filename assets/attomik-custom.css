@@ -1312,3 +1312,267 @@
   .jc-gthumbs { scroll-behavior: auto; }
   .jc-gthumbs__item { transition: none; }
 }
+
+/* ============================================
+   TASTING PROFILE SECTION (jc-taste)
+   sections/tasting-profile.liquid. Standalone PDP section — not part of the
+   buy column — but built on the same --jc-bb-* brand tokens so it reads as
+   one system with the buy box above it.
+
+   COLOUR, as elsewhere in this file: the compiled bundle declares
+   `body * { color: var(--color__text-light) }` unscoped at (0,0,1), which
+   beats inheritance from any container. Every text-bearing element below
+   carries its own color rule on its own class instead of relying on the
+   cascade.
+   ============================================ */
+.jc-taste {
+  padding: var(--jc-bb-space-xl) var(--jc-bb-gutter);
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* --- Top half: current flavor --- */
+.jc-taste__top {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--jc-bb-space-xl);
+  margin-bottom: var(--jc-bb-space-xl);
+}
+.jc-taste__intro {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+.jc-taste__eyebrow {
+  display: block;
+  font-family: var(--type__font-nav-family);
+  font-style: var(--type__font-nav-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  line-height: 1.15;
+  color: var(--jc-bb-muted-aa);
+  margin-bottom: var(--jc-bb-space-xs);
+}
+.jc-taste__headline {
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-heading-2);
+  line-height: 0.98;
+  letter-spacing: -0.01em;
+  color: var(--jc-bb-ink);
+  margin: 0;
+}
+.jc-taste__description {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
+  color: var(--jc-bb-ink);
+  max-width: 46ch;
+  margin: var(--jc-bb-space-sm) 0 0;
+}
+.jc-taste__tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--jc-bb-space-2xs);
+  list-style: none;
+  padding: 0;
+  margin: var(--jc-bb-space-md) 0 0;
+}
+.jc-taste__tag {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  line-height: 1;
+  color: var(--jc-bb-muted-aa);
+  background: var(--jc-bb-cream);
+  border: 1px solid var(--jc-bb-hairline);
+  border-radius: var(--ac-radius-pill);
+  padding: 7px 12px;
+  white-space: nowrap;
+}
+
+.jc-taste__bars {
+  flex: 1 1 50%;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--jc-bb-space-sm);
+}
+.jc-taste__bar-row {
+  display: grid;
+  grid-template-columns: 84px minmax(0, 1fr) 108px;
+  align-items: center;
+  gap: var(--jc-bb-space-sm);
+}
+.jc-taste__bar-label {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
+  color: var(--jc-bb-ink);
+}
+.jc-taste__bar-track {
+  height: 8px;
+  border-radius: var(--ac-radius-pill);
+  background: var(--jc-bb-tan);
+  overflow: hidden;
+}
+.jc-taste__bar-fill {
+  height: 100%;
+  border-radius: var(--ac-radius-pill);
+  /* Set inline per flavor from swatch_color; falls back to ink only if a
+     profile is ever saved with the swatch field blank. */
+  background: var(--jc-taste-fill, var(--jc-bb-ink));
+  transition: width 0.2s ease, background-color 0.2s ease;
+}
+.jc-taste__bar-value {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  color: var(--jc-bb-muted-aa);
+  text-align: right;
+}
+
+/* --- Bottom half: comparison table --- */
+.jc-taste__table-wrap { width: 100%; }
+.jc-taste__table-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--jc-bb-space-sm);
+  margin-bottom: var(--jc-bb-space-sm);
+}
+.jc-taste__table-title {
+  font-family: var(--type__font-header-family);
+  font-style: var(--type__font-header-style);
+  font-weight: var(--type__font-header-weight);
+  font-size: var(--type__font-100);
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--jc-bb-ink);
+  margin: 0;
+}
+.jc-taste__table-hint {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-smaller);
+  color: var(--jc-bb-muted-aa);
+  white-space: nowrap;
+}
+
+.jc-taste__table-scroll {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+.jc-taste__table-scroll::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+.jc-taste__table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: collapse;
+}
+.jc-taste__table th,
+.jc-taste__table td {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
+  color: var(--jc-bb-ink);
+  padding: var(--jc-bb-space-sm) var(--jc-bb-space-xs);
+  border-top: 1px solid var(--jc-bb-hairline-soft);
+  text-align: center;
+}
+.jc-taste__table thead th { border-top: 0; }
+.jc-taste__table tbody tr:last-child th,
+.jc-taste__table tbody tr:last-child td { border-bottom: 1px solid var(--jc-bb-hairline-soft); }
+
+/* Row-label column: left-aligned, muted, and pinned while the body scrolls
+   horizontally on narrow viewports (see the 768px block below). */
+.jc-taste__rowlabel {
+  text-align: left;
+  font-weight: var(--type__font-body-weight);
+  color: var(--jc-bb-muted);
+  white-space: nowrap;
+  background: var(--ac-body-bg);
+}
+
+.jc-taste__col {
+  cursor: pointer;
+  border: 0;
+  background: none;
+  transition: background-color 0.15s ease;
+}
+.jc-taste__col:focus-visible {
+  outline: 2px solid var(--jc-bb-ink);
+  outline-offset: -2px;
+}
+.jc-taste__swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  margin-right: 6px;
+  vertical-align: middle;
+}
+.jc-taste__col-name {
+  font-weight: 700;
+  vertical-align: middle;
+}
+
+/* Active-column highlight, toggled by JS on click and set server-side for the
+   current product's column on first paint. */
+.jc-taste__col.is-active,
+.jc-taste__cell.is-active {
+  background: var(--jc-bb-tan);
+}
+.jc-taste__col.is-active { border-radius: var(--ac-radius-sm) var(--ac-radius-sm) 0 0; }
+
+.jc-taste__note {
+  font-family: var(--type__font-body-family);
+  font-style: var(--type__font-body-style);
+  font-weight: var(--type__font-body-weight);
+  font-size: var(--type__font-small);
+  line-height: var(--spacing__font-small);
+  color: var(--jc-bb-muted-aa);
+  max-width: 70ch;
+  margin: var(--jc-bb-space-md) 0 0;
+}
+
+/* Headline/description stack over the bars below 768px — same fold the rest
+   of the PDP uses (see .jc-gthumbs and .jc-bb-sizes above), not a new one. */
+@media (max-width: 768px) {
+  .jc-taste__top {
+    flex-direction: column;
+    gap: var(--jc-bb-space-lg);
+  }
+  .jc-taste__bars { width: 100%; }
+}
+
+/* Table: sticky row labels + horizontal scroll with light snap, same
+   overflow-on-narrow-column problem .jc-bb-sizes solved for the size tiles —
+   minmax(0, 1fr) has nothing to grip here since these are fixed-width table
+   cells, so the fix is a scroll container instead of a flexible track. */
+@media (max-width: 480px) {
+  .jc-taste__table-scroll {
+    scroll-snap-type: x proximity;
+  }
+  .jc-taste__col {
+    scroll-snap-align: start;
+  }
+  .jc-taste__rowlabel {
+    position: sticky;
+    left: 0;
+    z-index: 1;
+    box-shadow: 1px 0 0 var(--jc-bb-hairline-soft);
+  }
+}

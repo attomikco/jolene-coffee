@@ -1,0 +1,270 @@
+<!-- sections/tasting-profile.liquid -->
+{% comment %}
+  Tasting Profile — reads the current product's custom.flavor_profile
+  metaobject reference and renders a tasting note + 4 profile bars, plus a
+  side-by-side comparison table of every flavor_profile entry (type
+  "flavor_profile"), sorted by its sort_order field.
+
+  No-ops entirely (not even an empty wrapper) when the current product has no
+  custom.flavor_profile reference — the variety packs, which don't carry one.
+
+  Table cells for all 5 flavors render server-side and stay in the DOM at all
+  times; clicking a column only toggles which one is highlighted and re-writes
+  the top-half content from the JSON blob embedded at the end of the section,
+  via the inline script. No fetch, no navigation — everything needed is
+  already on the page.
+
+  Globals:
+  - product: {object}
+{% endcomment %}
+
+{%- liquid
+  assign current_ref = product.metafields.custom.flavor_profile.value
+-%}
+{%- if current_ref != blank -%}
+  {%- assign flavors = shop.metaobjects.flavor_profile.values | sort: 'sort_order.value' -%}
+  <section class="jc-taste" data-jc-taste="{{ section.id }}">
+    <div class="jc-taste__top">
+      <div class="jc-taste__intro">
+        <span class="jc-taste__eyebrow">Tastes like</span>
+        <h2 class="jc-taste__headline" data-jc-taste-field="tastes_like">{{ current_ref.tastes_like.value }}</h2>
+        {%- unless current_ref.tasting_description.value == blank -%}
+          <p class="jc-taste__description" data-jc-taste-field="tasting_description">{{ current_ref.tasting_description.value }}</p>
+        {%- endunless -%}
+        {%- if current_ref.context_tags.value.size > 0 -%}
+          <ul class="jc-taste__tags" data-jc-taste-tags>
+            {%- for tag in current_ref.context_tags.value -%}
+              <li class="jc-taste__tag">{{ tag }}</li>
+            {%- endfor -%}
+          </ul>
+        {%- endif -%}
+      </div>
+
+      <div class="jc-taste__bars" data-jc-taste-bars style="--jc-taste-fill: {{ current_ref.swatch_color.value }};">
+        <div class="jc-taste__bar-row">
+          <span class="jc-taste__bar-label">Roast</span>
+          <div class="jc-taste__bar-track">
+            <div class="jc-taste__bar-fill" data-jc-taste-bar="roast" style="width: {{ current_ref.roast_level.value | times: 20 }}%;"></div>
+          </div>
+          <span class="jc-taste__bar-value" data-jc-taste-bar-label="roast">{{ current_ref.roast_label.value }}</span>
+        </div>
+        <div class="jc-taste__bar-row">
+          <span class="jc-taste__bar-label">Sweetness</span>
+          <div class="jc-taste__bar-track">
+            <div class="jc-taste__bar-fill" data-jc-taste-bar="sweetness" style="width: {{ current_ref.sweetness_level.value | times: 20 }}%;"></div>
+          </div>
+          <span class="jc-taste__bar-value" data-jc-taste-bar-label="sweetness">{{ current_ref.sweetness_label.value }}</span>
+        </div>
+        <div class="jc-taste__bar-row">
+          <span class="jc-taste__bar-label">Body</span>
+          <div class="jc-taste__bar-track">
+            <div class="jc-taste__bar-fill" data-jc-taste-bar="body" style="width: {{ current_ref.body_level.value | times: 20 }}%;"></div>
+          </div>
+          <span class="jc-taste__bar-value" data-jc-taste-bar-label="body">{{ current_ref.body_label.value }}</span>
+        </div>
+        <div class="jc-taste__bar-row">
+          <span class="jc-taste__bar-label">Nuttiness</span>
+          <div class="jc-taste__bar-track">
+            <div class="jc-taste__bar-fill" data-jc-taste-bar="nuttiness" style="width: {{ current_ref.nuttiness_level.value | times: 20 }}%;"></div>
+          </div>
+          <span class="jc-taste__bar-value" data-jc-taste-bar-label="nuttiness">{{ current_ref.nuttiness_label.value }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="jc-taste__table-wrap">
+      <div class="jc-taste__table-head">
+        <h3 class="jc-taste__table-title" id="jc-taste-table-title-{{ section.id }}">All four, side by side</h3>
+        <span class="jc-taste__table-hint">Tap a column to switch</span>
+      </div>
+
+      <div class="jc-taste__table-scroll" data-jc-taste-scroll>
+        <table class="jc-taste__table" data-jc-taste-table aria-labelledby="jc-taste-table-title-{{ section.id }}">
+          <thead>
+            <tr>
+              <th class="jc-taste__rowlabel" scope="col"><span class="sr-only">Attribute</span></th>
+              {%- for flavor in flavors -%}
+                {%- assign is_active = false -%}
+                {%- if flavor.handle == current_ref.handle -%}{%- assign is_active = true -%}{%- endif -%}
+                <th
+                  class="jc-taste__col{% if is_active %} is-active{% endif %}"
+                  data-jc-taste-col="{{ flavor.handle }}"
+                  data-col="{{ flavor.handle }}"
+                  tabindex="0"
+                  role="button"
+                  aria-pressed="{{ is_active }}"
+                  scope="col"
+                >
+                  <span class="jc-taste__swatch" style="background: {{ flavor.swatch_color.value }};" aria-hidden="true"></span>
+                  <span class="jc-taste__col-name">{{ flavor.flavor_name.value }}</span>
+                </th>
+              {%- endfor -%}
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row" class="jc-taste__rowlabel">Tasting notes</th>
+              {%- for flavor in flavors -%}
+                <td class="jc-taste__cell{% if flavor.handle == current_ref.handle %} is-active{% endif %}" data-col="{{ flavor.handle }}">{{ flavor.tastes_like.value }}</td>
+              {%- endfor -%}
+            </tr>
+            <tr>
+              <th scope="row" class="jc-taste__rowlabel">Sweetness</th>
+              {%- for flavor in flavors -%}
+                <td class="jc-taste__cell{% if flavor.handle == current_ref.handle %} is-active{% endif %}" data-col="{{ flavor.handle }}">{{ flavor.table_sweetness.value }}</td>
+              {%- endfor -%}
+            </tr>
+            <tr>
+              <th scope="row" class="jc-taste__rowlabel">Caffeine</th>
+              {%- for flavor in flavors -%}
+                <td class="jc-taste__cell{% if flavor.handle == current_ref.handle %} is-active{% endif %}" data-col="{{ flavor.handle }}">{{ flavor.caffeine_mg.value }}mg</td>
+              {%- endfor -%}
+            </tr>
+            <tr>
+              <th scope="row" class="jc-taste__rowlabel">Sugar</th>
+              {%- for flavor in flavors -%}
+                <td class="jc-taste__cell{% if flavor.handle == current_ref.handle %} is-active{% endif %}" data-col="{{ flavor.handle }}">{{ flavor.sugar_g.value }}g</td>
+              {%- endfor -%}
+            </tr>
+            <tr>
+              <th scope="row" class="jc-taste__rowlabel">Bean origin</th>
+              {%- for flavor in flavors -%}
+                <td class="jc-taste__cell{% if flavor.handle == current_ref.handle %} is-active{% endif %}" data-col="{{ flavor.handle }}">{{ flavor.bean_origin.value | default: "—" }}</td>
+              {%- endfor -%}
+            </tr>
+            <tr>
+              <th scope="row" class="jc-taste__rowlabel">Best for</th>
+              {%- for flavor in flavors -%}
+                <td class="jc-taste__cell{% if flavor.handle == current_ref.handle %} is-active{% endif %}" data-col="{{ flavor.handle }}">{{ flavor.best_for.value }}</td>
+              {%- endfor -%}
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="jc-taste__note" data-jc-taste-field="comparison_note">{{ current_ref.comparison_note.value }}</p>
+    </div>
+
+    {%- comment -%}
+      Full data for all 5 flavors, keyed by handle, for the click-to-switch
+      JS below. Fields written out explicitly rather than looped over a
+      dynamic key list, so this stays a straight, checkable Liquid-to-JSON
+      mapping.
+    {%- endcomment -%}
+    <script type="application/json" data-jc-taste-json>
+      {
+        {%- for flavor in flavors -%}
+          {{ flavor.handle | json }}: {
+            "flavor_name": {{ flavor.flavor_name.value | json }},
+            "swatch_color": {{ flavor.swatch_color.value | json }},
+            "tastes_like": {{ flavor.tastes_like.value | json }},
+            "tasting_description": {{ flavor.tasting_description.value | json }},
+            "context_tags": {{ flavor.context_tags.value | json }},
+            "roast_level": {{ flavor.roast_level.value | json }},
+            "roast_label": {{ flavor.roast_label.value | json }},
+            "sweetness_level": {{ flavor.sweetness_level.value | json }},
+            "sweetness_label": {{ flavor.sweetness_label.value | json }},
+            "body_level": {{ flavor.body_level.value | json }},
+            "body_label": {{ flavor.body_label.value | json }},
+            "nuttiness_level": {{ flavor.nuttiness_level.value | json }},
+            "nuttiness_label": {{ flavor.nuttiness_label.value | json }},
+            "comparison_note": {{ flavor.comparison_note.value | json }}
+          }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      }
+    </script>
+
+    <script>
+      (function () {
+        var root = document.currentScript.closest('[data-jc-taste]');
+        if (!root) return;
+
+        var dataEl = root.querySelector('[data-jc-taste-json]');
+        var data;
+        try {
+          data = JSON.parse(dataEl.textContent);
+        } catch (e) {
+          return;
+        }
+
+        var metrics = ['roast', 'sweetness', 'body', 'nuttiness'];
+        var headline = root.querySelector('[data-jc-taste-field="tastes_like"]');
+        var description = root.querySelector('[data-jc-taste-field="tasting_description"]');
+        var note = root.querySelector('[data-jc-taste-field="comparison_note"]');
+        var tagsList = root.querySelector('[data-jc-taste-tags]');
+        var barsWrap = root.querySelector('[data-jc-taste-bars]');
+
+        function applyFlavor(handle) {
+          var flavor = data[handle];
+          if (!flavor) return;
+
+          if (headline) headline.textContent = flavor.tastes_like;
+          if (description) description.textContent = flavor.tasting_description;
+          if (note) note.textContent = flavor.comparison_note;
+
+          if (tagsList) {
+            tagsList.innerHTML = '';
+            (flavor.context_tags || []).forEach(function (tag) {
+              var li = document.createElement('li');
+              li.className = 'jc-taste__tag';
+              li.textContent = tag;
+              tagsList.appendChild(li);
+            });
+          }
+
+          if (barsWrap) {
+            barsWrap.style.setProperty('--jc-taste-fill', flavor.swatch_color || '');
+            metrics.forEach(function (metric) {
+              var fill = barsWrap.querySelector('[data-jc-taste-bar="' + metric + '"]');
+              var label = barsWrap.querySelector('[data-jc-taste-bar-label="' + metric + '"]');
+              var level = flavor[metric + '_level'] || 0;
+              if (fill) fill.style.width = (level * 20) + '%';
+              if (label) label.textContent = flavor[metric + '_label'] || '';
+            });
+          }
+
+          root.querySelectorAll('[data-col]').forEach(function (el) {
+            el.classList.toggle('is-active', el.getAttribute('data-col') === handle);
+          });
+          root.querySelectorAll('[data-jc-taste-col]').forEach(function (th) {
+            th.setAttribute('aria-pressed', th.getAttribute('data-jc-taste-col') === handle ? 'true' : 'false');
+          });
+        }
+
+        root.querySelectorAll('[data-jc-taste-col]').forEach(function (th) {
+          th.addEventListener('click', function () {
+            applyFlavor(th.getAttribute('data-jc-taste-col'));
+          });
+          th.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') {
+              e.preventDefault();
+              applyFlavor(th.getAttribute('data-jc-taste-col'));
+            }
+          });
+        });
+
+        var activeCol = root.querySelector('[data-jc-taste-col].is-active');
+        var scroller = root.querySelector('[data-jc-taste-scroll]');
+        if (activeCol && scroller && window.matchMedia('(max-width: 768px)').matches) {
+          scroller.scrollLeft = Math.max(0, activeCol.offsetLeft - scroller.offsetLeft - 16);
+        }
+      })();
+    </script>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Tasting Profile",
+  "tag": "section",
+  "settings": [],
+  "enabled_on": {
+    "templates": ["product"]
+  },
+  "presets": [
+    {
+      "name": "Tasting Profile"
+    }
+  ]
+}
+{% endschema %}
