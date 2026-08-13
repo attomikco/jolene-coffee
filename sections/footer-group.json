@@ -1,1 +1,202 @@
-{"name":"Footer group","type":"footer","order":["liquid_F33wp9","text_zM9YDz","17793989878c856431","theme_footer"],"sections":{"liquid_F33wp9":{"type":"liquid","name":"t:sections.liquid.name","settings":{"liquid":"<style>\n  .jolene-follow-block {\n    --jolene-yellow: #FFC600;\n    --jolene-ink: #1D1D1E;\n    --jolene-muted: #5a5348;\n    max-width: 1000px;\n    margin: 0 auto;\n    padding: 12px 24px 4px;\n    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n    text-align: center;\n  }\n  .jolene-follow-block * { box-sizing: border-box; }\n  .jolene-follow-line {\n    font-size: clamp(20px, 3.4vw, 34px);\n    font-weight: 800;\n    text-transform: uppercase;\n    color: var(--jolene-ink);\n    letter-spacing: 0.02em;\n    line-height: 1.18;\n    margin: 0 0 24px;\n    text-wrap: balance;\n  }\n  .jolene-follow-btn {\n    display: inline-flex;\n    align-items: center;\n    gap: 10px;\n    background: var(--jolene-yellow);\n    color: var(--jolene-ink);\n    text-decoration: none;\n    font-size: 16px;\n    font-weight: 800;\n    text-transform: uppercase;\n    letter-spacing: 0.04em;\n    padding: 15px 30px;\n    border-radius: 8px;\n    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;\n    box-shadow: 0 10px 24px -14px rgba(255, 198, 0, 0.65);\n  }\n  .jolene-follow-btn:hover { filter: brightness(1.04); transform: translateY(-1px); }\n  .jolene-follow-btn:active { transform: translateY(0); }\n  .jolene-follow-btn svg {\n    width: 20px; height: 20px;\n    fill: none;\n    stroke: var(--jolene-ink);\n    stroke-width: 2;\n  }\n<\/style>\n<div class=\"jolene-follow-block\">\n  <p class=\"jolene-follow-line\">Stay in the loop<\/p>\n  <a class=\"jolene-follow-btn\" href=\"https:\/\/www.instagram.com\/thejolenecoffee\" target=\"_blank\" rel=\"noopener\">\n    <svg viewBox=\"0 0 24 24\" xmlns=\"http:\/\/www.w3.org\/2000\/svg\">\n      <rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"\/>\n      <circle cx=\"12\" cy=\"12\" r=\"4\"\/>\n      <circle cx=\"17.5\" cy=\"6.5\" r=\"0.9\" fill=\"var(--jolene-ink)\" stroke=\"none\"\/>\n    <\/svg>\n    Follow @thejolenecoffee\n  <\/a>\n<\/div>","spacing_top":100,"spacing_bottom":0,"color_scheme":"color__bg-body","color_background":"#ffffff","color_text":"","color_border":"color__border-divider-1","enable_color_fade":false,"style_border":"","enable_margin":true,"visibility":""}},"text_zM9YDz":{"type":"text","disabled":true,"settings":{"heading":"Follow us @jolenecoffee","content":"","button_label":"","button_url":"","spacing_top":70,"spacing_bottom":0,"color_scheme":"color__bg-body","color_background":"#ffffff","color_text":"","color_border":"color__border-divider-1","color_button":"btn btn--secondary","enable_color_fade":false,"style_border":"","style_text_alignment":"text-center","layout_x_alignment":"justify-center","layout_column_width":80,"enable_margin":true,"visibility":""}},"17793989878c856431":{"type":"apps","blocks":{"moast_carousel_7L34YJ":{"type":"shopify:\/\/apps\/moast\/blocks\/carousel\/1ac7547b-5443-446c-868c-7fab4566ee16","settings":{"dynamic":false,"feed":"default","feed_usage":"back_up","header":"","slide_type":"cards","product_cards":"none","autoplay_mode":"none","autoscroll_duration":0,"slide_size":"200","aspect_ratio":"vertical","border":0,"border_color":"linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)","slide_rounding":"6","slide_spacing":5,"padding_top":40,"pagination":"below","alignment":"center","click_action":"fullscreen","float_location":"bottom_right","float_size":"medium","show_captions":false,"custom_css":""}},"instafeed_app_block_UFVCgj":{"type":"shopify:\/\/apps\/instafeed\/blocks\/app-block\/c447db20-095d-4a10-9725-b5977662c9d5","disabled":true,"settings":{"title":"","title_color":"","title_size_v2":0,"alignment":"center","instafeed_margin_top":0,"instafeed_margin_bottom":0,"instafeed_margin_sides":0,"show_instagram_link":true,"link_alignment":"left","link_color":"#000000","background_color":"","feed_id":"","html_area":""}}},"block_order":["moast_carousel_7L34YJ","instafeed_app_block_UFVCgj"],"settings":{"spacing_top":20,"spacing_bottom":20,"color_scheme":"color__bg-body","color_background":"#ffffff","color_text":"","color_border":"color__border-divider-1","enable_color_fade":false,"style_border":"border--b-width","enable_margin":false}},"theme_footer":{"type":"theme__footer","blocks":{"newsletter_footer":{"type":"newsletter","disabled":true,"settings":{"heading":"Join the Crew","content":"<p>Early access to limited drops, brewing insights, and member pricing straight to your inbox.<\/p>","button":"Subscribe","disclaimer":"<p>You can unsubscribe at any time. We respect your inbox and your privacy.<\/p>","success":"<p>Welcome to the crew — thanks for joining.<\/p>"}},"content_LVnE3Q":{"type":"content","settings":{"heading":"EVERYTHING HAPPENS OVER COFFEE.","content":"<p>Jolene is premium cold brew born from a twenty-year friendship and a five-year obsession with getting it right. No artificial anything. No shortcuts. Just coffee worth caring about.<\/p>","button_label":"Our Story","button_url":"","logo":"shopify:\/\/shop_images\/White_no_background.webp","logo_desktop_height":70,"logo_mobile_height":50}},"menu_4BT7N9":{"type":"menu","name":"SHOP","settings":{"menu":"shop"}},"menu_8KHPH9":{"type":"menu","settings":{"menu":"explore"}},"menu_RBdmkT":{"type":"menu","settings":{"menu":"the-fine-print"}}},"block_order":["newsletter_footer","content_LVnE3Q","menu_4BT7N9","menu_8KHPH9","menu_RBdmkT"],"settings":{"spacing_top":50,"spacing_bottom":100,"main_color_scheme":"color__bg-primary color__primary","main_color_border":"color__border-divider-1","main_color_button":"btn--small btn--outline-alt","main_layout_x_alignment":"justify-between","sub_color_scheme":"color__bg-body color__text","sub_color_border":"color__border-divider-1","sub_links":"","sub_show_account_link":true,"sub_show_localization":true,"sub_show_payment_icons":true,"sub_enable_follow_on_shop":false,"visibility":""}}}}
+/*
+ * ------------------------------------------------------------
+ * IMPORTANT: The contents of this file are auto-generated.
+ *
+ * This file may be updated by the Shopify admin theme editor
+ * or related systems. Please exercise caution as any changes
+ * made to this file may be overwritten.
+ * ------------------------------------------------------------
+ */
+{
+  "name": "Footer group",
+  "type": "footer",
+  "order": [
+    "liquid_F33wp9",
+    "text_zM9YDz",
+    "17793989878c856431",
+    "theme_footer"
+  ],
+  "sections": {
+    "liquid_F33wp9": {
+      "type": "liquid",
+      "name": "t:sections.liquid.name",
+      "settings": {
+        "liquid": "<style>\n  .jolene-follow-block {\n    --jolene-yellow: #FFC600;\n    --jolene-ink: #1D1D1E;\n    --jolene-muted: #5a5348;\n    max-width: 1000px;\n    margin: 0 auto;\n    padding: 12px 24px 4px;\n    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;\n    text-align: center;\n  }\n  .jolene-follow-block * { box-sizing: border-box; }\n  .jolene-follow-line {\n    font-size: clamp(20px, 3.4vw, 34px);\n    font-weight: 800;\n    text-transform: uppercase;\n    color: var(--jolene-ink);\n    letter-spacing: 0.02em;\n    line-height: 1.18;\n    margin: 0 0 24px;\n    text-wrap: balance;\n  }\n  .jolene-follow-btn {\n    display: inline-flex;\n    align-items: center;\n    gap: 10px;\n    background: var(--jolene-yellow);\n    color: var(--jolene-ink);\n    text-decoration: none;\n    font-size: 16px;\n    font-weight: 800;\n    text-transform: uppercase;\n    letter-spacing: 0.04em;\n    padding: 15px 30px;\n    border-radius: 8px;\n    transition: transform .15s ease, filter .15s ease, box-shadow .15s ease;\n    box-shadow: 0 10px 24px -14px rgba(255, 198, 0, 0.65);\n  }\n  .jolene-follow-btn:hover { filter: brightness(1.04); transform: translateY(-1px); }\n  .jolene-follow-btn:active { transform: translateY(0); }\n  .jolene-follow-btn svg {\n    width: 20px; height: 20px;\n    fill: none;\n    stroke: var(--jolene-ink);\n    stroke-width: 2;\n  }\n</style>\n<div class=\"jolene-follow-block\">\n  <p class=\"jolene-follow-line\">Stay in the loop</p>\n  <a class=\"jolene-follow-btn\" href=\"https://www.instagram.com/thejolenecoffee\" target=\"_blank\" rel=\"noopener\">\n    <svg viewBox=\"0 0 24 24\" xmlns=\"http://www.w3.org/2000/svg\">\n      <rect x=\"3\" y=\"3\" width=\"18\" height=\"18\" rx=\"5\"/>\n      <circle cx=\"12\" cy=\"12\" r=\"4\"/>\n      <circle cx=\"17.5\" cy=\"6.5\" r=\"0.9\" fill=\"var(--jolene-ink)\" stroke=\"none\"/>\n    </svg>\n    Follow @thejolenecoffee\n  </a>\n</div>",
+        "spacing_top": 50,
+        "spacing_bottom": 0,
+        "color_scheme": "color__bg-body",
+        "color_background": "#ffffff",
+        "color_text": "",
+        "color_border": "color__border-divider-1",
+        "enable_color_fade": false,
+        "style_border": "",
+        "enable_margin": true,
+        "visibility": ""
+      }
+    },
+    "text_zM9YDz": {
+      "type": "text",
+      "disabled": true,
+      "settings": {
+        "heading": "Follow us @jolenecoffee",
+        "content": "",
+        "button_label": "",
+        "button_url": "",
+        "spacing_top": 70,
+        "spacing_bottom": 0,
+        "color_scheme": "color__bg-body",
+        "color_background": "#ffffff",
+        "color_text": "",
+        "color_border": "color__border-divider-1",
+        "color_button": "btn btn--secondary",
+        "enable_color_fade": false,
+        "style_border": "",
+        "style_text_alignment": "text-center",
+        "layout_x_alignment": "justify-center",
+        "layout_column_width": 80,
+        "enable_margin": true,
+        "visibility": ""
+      }
+    },
+    "17793989878c856431": {
+      "type": "apps",
+      "blocks": {
+        "moast_carousel_7L34YJ": {
+          "type": "shopify://apps/moast/blocks/carousel/1ac7547b-5443-446c-868c-7fab4566ee16",
+          "settings": {
+            "dynamic": false,
+            "feed": "default",
+            "feed_usage": "back_up",
+            "header": "",
+            "slide_type": "cards",
+            "product_cards": "none",
+            "autoplay_mode": "none",
+            "autoscroll_duration": 0,
+            "slide_size_mode": "fixed",
+            "slide_size": "200",
+            "slides_in_view_desktop": 4,
+            "slides_in_view_mobile": 2,
+            "aspect_ratio": "vertical",
+            "border": 0,
+            "border_color": "linear-gradient(to right, #833ab4, #fd1d1d, #fcb045)",
+            "slide_rounding": "6",
+            "slide_spacing": 5,
+            "padding_top": 40,
+            "pagination": "below",
+            "alignment": "center",
+            "click_action": "fullscreen",
+            "float_location": "bottom_right",
+            "float_size": "medium",
+            "show_captions": false,
+            "show_handles": false,
+            "custom_css": ""
+          }
+        },
+        "instafeed_app_block_UFVCgj": {
+          "type": "shopify://apps/instafeed/blocks/app-block/c447db20-095d-4a10-9725-b5977662c9d5",
+          "disabled": true,
+          "settings": {
+            "title": "",
+            "title_color": "",
+            "title_size_v2": 0,
+            "alignment": "center",
+            "instafeed_margin_top": 0,
+            "instafeed_margin_bottom": 0,
+            "instafeed_margin_sides": 0,
+            "show_instagram_link": true,
+            "link_alignment": "left",
+            "link_color": "#000000",
+            "background_color": "",
+            "feed_id": "",
+            "html_area": ""
+          }
+        }
+      },
+      "block_order": [
+        "moast_carousel_7L34YJ",
+        "instafeed_app_block_UFVCgj"
+      ],
+      "settings": {
+        "spacing_top": 20,
+        "spacing_bottom": 20,
+        "color_scheme": "color__bg-body",
+        "color_background": "#ffffff",
+        "color_text": "",
+        "color_border": "color__border-divider-1",
+        "enable_color_fade": false,
+        "style_border": "border--b-width",
+        "enable_margin": false
+      }
+    },
+    "theme_footer": {
+      "type": "theme__footer",
+      "blocks": {
+        "newsletter_footer": {
+          "type": "newsletter",
+          "disabled": true,
+          "settings": {
+            "heading": "Join the Crew",
+            "content": "<p>Early access to limited drops, brewing insights, and member pricing straight to your inbox.</p>",
+            "button": "Subscribe",
+            "disclaimer": "<p>You can unsubscribe at any time. We respect your inbox and your privacy.</p>",
+            "success": "<p>Welcome to the crew — thanks for joining.</p>"
+          }
+        },
+        "content_LVnE3Q": {
+          "type": "content",
+          "settings": {
+            "heading": "EVERYTHING HAPPENS OVER COFFEE.",
+            "content": "<p>Jolene is premium cold brew born from a twenty-year friendship and a five-year obsession with getting it right. No artificial anything. No shortcuts. Just coffee worth caring about.</p>",
+            "button_label": "Our Story",
+            "button_url": "",
+            "logo": "shopify://shop_images/White_no_background.webp",
+            "logo_desktop_height": 70,
+            "logo_mobile_height": 50
+          }
+        },
+        "menu_4BT7N9": {
+          "type": "menu",
+          "name": "SHOP",
+          "settings": {
+            "menu": "shop"
+          }
+        },
+        "menu_8KHPH9": {
+          "type": "menu",
+          "settings": {
+            "menu": "explore"
+          }
+        },
+        "menu_RBdmkT": {
+          "type": "menu",
+          "settings": {
+            "menu": "the-fine-print"
+          }
+        }
+      },
+      "block_order": [
+        "newsletter_footer",
+        "content_LVnE3Q",
+        "menu_4BT7N9",
+        "menu_8KHPH9",
+        "menu_RBdmkT"
+      ],
+      "settings": {
+        "spacing_top": 50,
+        "spacing_bottom": 100,
+        "main_color_scheme": "color__bg-primary color__primary",
+        "main_color_border": "color__border-divider-1",
+        "main_color_button": "btn--small btn--outline-alt",
+        "main_layout_x_alignment": "justify-between",
+        "sub_color_scheme": "color__bg-body color__text",
+        "sub_color_border": "color__border-divider-1",
+        "sub_links": "",
+        "sub_show_account_link": true,
+        "sub_show_localization": true,
+        "sub_show_payment_icons": true,
+        "sub_enable_follow_on_shop": false,
+        "visibility": ""
+      }
+    }
+  }
+}
