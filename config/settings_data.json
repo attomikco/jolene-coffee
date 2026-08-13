@@ -97,15 +97,27 @@
       },
       "theme__menu": {
         "type": "theme__menu",
+        "blocks": {
+          "collection_hwFEEX": {
+            "type": "collection",
+            "settings": {
+              "menu": "shop",
+              "collection": "our-coffee"
+            }
+          }
+        },
+        "block_order": [
+          "collection_hwFEEX"
+        ],
         "settings": {
           "top_color_scheme": "color__bg-body color__text",
           "top_color_border": "color__border-divider-1",
-          "main_color_scheme": "color__bg-body color__text",
+          "main_color_scheme": "color__bg-primary color__primary",
           "main_color_border": "color__border-divider-1",
           "main_font": "type__body",
           "show_search": true,
           "show_chevrons": true,
-          "bottom_color_scheme": "color__bg-overlay-1 color__text",
+          "bottom_color_scheme": "color__bg-shade-2 color__text",
           "bottom_color_border": "color__border-divider-1"
         }
       },
