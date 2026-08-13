@@ -1204,3 +1204,97 @@
   .jc-bb-sticky,
   .jc-bb-ship__fill { transition: none; }
 }
+
+/* ============================================
+   PDP MOBILE GALLERY THUMBNAILS (jc-gthumbs)
+   Renders under 768px only; the desktop stacked grid is untouched.
+   Markup: snippets/jc-gallery-thumbs.liquid.
+
+   COLOUR, as in the buy box above: the compiled bundle declares
+   `body * { color: var(--color__text-light) }` unscoped at (0,0,1). So the
+   badge carries its own colour rule, and the idle border uses an explicit
+   token rather than currentColor — currentColor here resolves to that
+   unrelated global and is not a reliable hairline.
+   ============================================ */
+.jc-gthumbs {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+  /* Cancel the px-4 (1rem) that snippets/product__liquid.liquid puts on the
+     block wrapper so the strip spans the full container, then re-apply the
+     gallery's own gap as padding. Net effect: the first thumbnail lines up
+     with the image edge above it (both at settings.gap_size), and thumbnails
+     scroll all the way to the container edge instead of stopping short.
+     The two must not be combined into one inset — that double-counts the gap. */
+  margin-inline: -1rem;
+  padding-inline: var(--jc-gthumbs-inset, 10px);
+  padding-bottom: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  scroll-behavior: smooth;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+/* Same effect as the theme's hidescrollbar utility, duplicated here so this
+   snippet does not depend on a Tailwind class surviving a theme update. */
+.jc-gthumbs::-webkit-scrollbar { display: none; width: 0; height: 0; }
+
+.jc-gthumbs__item {
+  position: relative;
+  flex: 0 0 auto;
+  width: 64px;
+  height: 64px;
+  padding: 0;
+  overflow: hidden;
+  /* Matches the gallery tiles, which use the theme's .border--radius. */
+  border-radius: var(--sizes__border-element-radius, 5px);
+  border: 1px solid var(--jc-bb-hairline);
+  background: none;
+  cursor: pointer;
+  transition: border-color 160ms ease, box-shadow 160ms ease;
+}
+
+.jc-gthumbs__item.is-active {
+  border-color: var(--jc-bb-ink);
+  box-shadow: inset 0 0 0 1px var(--jc-bb-ink);
+}
+
+.jc-gthumbs__item:focus-visible {
+  outline: 2px solid var(--jc-bb-ink);
+  outline-offset: 2px;
+}
+
+.jc-gthumbs__item img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  border-radius: 0;
+  object-fit: cover;
+}
+
+/* Video / model marker, matching the theme's own thumbnail badge position. */
+.jc-gthumbs__badge {
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2px;
+  background: rgba(0, 0, 0, 0.55);
+  color: #fff;
+  pointer-events: none;
+  backdrop-filter: blur(2px);
+}
+
+@media (min-width: 768px) {
+  .jc-gthumbs { display: none; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .jc-gthumbs { scroll-behavior: auto; }
+  .jc-gthumbs__item { transition: none; }
+}

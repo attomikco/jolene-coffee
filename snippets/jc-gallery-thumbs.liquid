@@ -1,0 +1,92 @@
+<!-- snippets/jc-gallery-thumbs.liquid -->
+{% comment %}
+  Mobile-only thumbnail strip for the PDP gallery.
+
+  The product template runs media_gallery_style: "grid", which stacks all media
+  on desktop and gives a swipeable slider on mobile but ships no thumbnails on
+  mobile. This adds them under 768px and leaves desktop untouched, rather than
+  switching to "Slider & thumbnails" and rebuilding the desktop layout in CSS.
+
+  MUST BE RENDERED AS A BLOCK INSIDE sections/product__main.liquid.
+  galleryScrollToIndex() resolves the slider through $refs.formContainer, and
+  x-ref="formContainer" sits on product__main (line 157). Moved into a
+  standalone section, $refs.formContainer is undefined and the call throws.
+  Do not refactor this into its own section — it breaks silently.
+
+  Three theme behaviours this leans on, all in assets/main-2qOaomAO.js:
+  - galleryScrollToIndex(i) is the theme's own Alpine method. Reused rather
+    than reimplementing scroll code.
+  - That method picks its slider with
+    `Array.from(sliders).find((s) => s.offsetWidth > 0)`. product__main renders
+    the gallery twice (a md:hidden mobile copy and the desktop column), so this
+    automatically targets whichever one is actually visible. No viewport JS
+    needed here.
+  - The active state binds to gallery_index, which each slide's own
+    x-intersect:enter.half keeps in sync in product__gallery-grid.liquid. So the
+    active thumb tracks swiping, not just clicks.
+
+  Renders nothing for single-media products.
+
+  It must also be FIRST in the section's block_order. The block's `position`
+  setting only controls the desktop column; the mobile branch of product__main
+  (line 229) renders every block in plain editor order under the gallery, so
+  block_order alone decides whether the strip sits under the gallery or halfway
+  down the buy column. Reordering blocks in the theme editor will move it.
+
+  Usage — as a Custom Liquid block in Product main, first in block_order:
+    {% render 'jc-gallery-thumbs' %}
+{% endcomment %}
+
+{%- if product.media.size > 1 -%}
+  {% comment %}
+    settings.gap_size is the padding the gallery slider gives itself in
+    product__gallery-grid.liquid. Passing it through lets the CSS line the first
+    thumbnail up with the image edge above it instead of with the px-4 the
+    product__liquid block wrapper adds.
+  {% endcomment %}
+  <div class="jc-gthumbs" style="--jc-gthumbs-inset: {{ settings.gap_size }}px;">
+    {%- for media in product.media -%}
+      <button
+        type="button"
+        class="jc-gthumbs__item"
+        {% comment %}
+          Hardcoded English, matching the other jc-* snippets — there is no
+          suitable key in locales/en.default.json and the theme's own gallery
+          indicators are unlocalised too.
+        {% endcomment %}
+        aria-label="{% if media.alt != blank %}{{ media.alt | escape }}{% else %}View media {{ forloop.index }} of {{ product.media.size }}{% endif %}"
+        @click="galleryScrollToIndex({{ forloop.index0 }});"
+        :class="gallery_index === {{ forloop.index0 }} ? 'is-active' : ''"
+        :aria-current="gallery_index === {{ forloop.index0 }} ? 'true' : 'false'"
+      >
+        {%- if media.media_type == 'model' -%}
+          <span class="jc-gthumbs__badge">
+            {% render 'component__icon', icon: 'box', size: '14' %}
+          </span>
+        {%- endif -%}
+        {%- if media.media_type == 'external_video' or media.media_type == 'video' -%}
+          <span class="jc-gthumbs__badge">
+            {% render 'component__icon', icon: 'play', size: '14' %}
+          </span>
+        {%- endif -%}
+
+        {% comment %}
+          enable_scroll_motion: false — component__image otherwise adds
+          motion-safe:scroll-blurinzoom-2-20, a view()-timeline animation. In a
+          horizontally scrolling strip that resolves against the wrong scroll
+          axis and can leave thumbnails stuck mid-animation. Nothing to gain
+          from it at 64px anyway.
+        {% endcomment %}
+        {% render 'component__image',
+          image: media,
+          max_width: 200,
+          ratio_class: 'aspect-[1/1]',
+          crop_class: 'object-cover',
+          enable_lazy_load: true,
+          enable_2x: true,
+          enable_scroll_motion: false
+        %}
+      </button>
+    {%- endfor -%}
+  </div>
+{%- endif -%}
