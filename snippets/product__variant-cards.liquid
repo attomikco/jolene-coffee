@@ -54,10 +54,11 @@
     assign has_config = true
   endif
 
-  # The free-shipping threshold is no longer read here. The cards used to carry
-  # a per-tile "Ships Free" / "$24 away" line; that message is now a single
-  # progress bar rendered under the whole row by jc-buybox-shipping.liquid,
-  # which reads settings.pdp_free_shipping_threshold itself.
+  # The free-shipping threshold itself is not read here — product__variant-cards-grid.liquid
+  # reads settings.pdp_free_shipping_threshold directly to decide each tile's
+  # "Ships Free" badge. The earned-progress "$24 away" message is a separate,
+  # cart-level fact and still renders as a single progress bar under the
+  # whole row via jc-buybox-shipping.liquid.
 -%}
 
 {% if should_render %}

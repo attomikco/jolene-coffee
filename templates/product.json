@@ -10,6 +10,7 @@
 {
   "order": [
     "1638995507af787164",
+    "tasting_profile_bQ7mXk",
     "icon_grid_zUYX9P",
     "content_grid_kihjkq",
     "testimonial_grid_AWPbj8",
@@ -319,6 +320,10 @@
         "enable_media_margin": true,
         "enable_main_margin": true
       }
+    },
+    "tasting_profile_bQ7mXk": {
+      "type": "tasting-profile",
+      "settings": {}
     },
     "icon_grid_zUYX9P": {
       "type": "icon-grid",

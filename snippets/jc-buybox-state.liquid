@@ -241,6 +241,16 @@
     if (!base_unit || unit >= base_unit) return 0;
     return Math.floor((base_unit - unit) / base_unit * 100);
   },
+  {%- comment -%}
+    Backs the tile "Ships Free" badge (product__variant-cards-grid.liquid). The
+    badge is SSR'd off the one-time price; a subscription discount only ever
+    moves price DOWN, so this can hide an already-rendered badge on plan
+    selection but never needs to show one that wasn't there at first paint.
+  {%- endcomment -%}
+  jcTileShipsFree(id) {
+    if (!this.jc_fs_threshold) return false;
+    return this.jcTilePrice(id) >= this.jc_fs_threshold;
+  },
 
   {%- comment -%}
     Only ever a real merchant-set compare_at_price. There is deliberately no
