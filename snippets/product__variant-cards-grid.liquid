@@ -176,24 +176,42 @@
 
       # === BADGE ===
       # Precedence (highest to lowest):
-      #   1. Per-product metafield (val_config.badge):
+      #   1. Ships Free (card_variant.price >= settings.pdp_free_shipping_threshold)
+      #        → ships_free_color_scheme. Wins outright — replaces Popular/Best
+      #        Value on that tile, per the schema's own "Ships Free wins when
+      #        triggered" note.
+      #   2. Per-product metafield (val_config.badge):
       #        - badge_color == 'secondary' → popular_color_scheme
       #        - else → best_value_color_scheme
-      #   2. Auto-heuristic by position:
+      #   3. Auto-heuristic by position:
       #        - middle index, not first/last → "Most Popular" + popular_color_scheme
       #
-      # "Ships Free" is deliberately NOT a badge, and no longer a line either:
-      # the free-shipping progress bar under the tile row now owns that message
-      # for the whole selection. Repeating it per tile made four tiles argue
-      # about one cart-level fact.
+      # Ships Free is SSR'd off the ONE-TIME price (the buy box's default
+      # selection — jc_plan_id starts at 0). Unlike the static value-prop line
+      # in product-checklist.liquid, this tile already lives inside the buy
+      # box's Alpine x-data, so instead of suppressing the badge outright on
+      # any subscribable product, it stays wired live: jcTileShipsFree() in
+      # jc-buybox-state.liquid re-checks the plan-effective price and hides
+      # the badge (x-show below) if a subscription discount drops this tile
+      # under the threshold. A discount only ever moves price down, so this
+      # SSR pass can only ever need to hide, never add, a badge.
       #
-      # "Best Value" is also gone. The hero savings sentence states the saving in
-      # dollars against the smallest pack, which is the same claim with a number
-      # attached — and two competing superlatives in one row read as noise.
-      # "Most Popular" is left as the single badge in the row.
+      # "Best Value" is otherwise gone. The hero savings sentence states the
+      # saving in dollars against the smallest pack, which is the same claim
+      # with a number attached — and two competing superlatives in one row
+      # read as noise. "Most Popular" is the other badge left in the row.
+      assign fs_threshold = settings.pdp_free_shipping_threshold | times: 100
+      assign ships_free = false
+      if fs_threshold > 0 and option_available and card_variant and card_variant.price >= fs_threshold
+        assign ships_free = true
+      endif
+
       assign badge_text = ''
       assign badge_scheme = ''
-      if val_config and val_config.badge != blank
+      if ships_free
+        assign badge_text = 'Ships Free'
+        assign badge_scheme = block.settings.ships_free_color_scheme
+      elsif val_config and val_config.badge != blank
         assign badge_text = val_config.badge
         if val_config.badge_color == 'secondary'
           assign badge_scheme = block.settings.popular_color_scheme
@@ -265,6 +283,19 @@
         assign per_unit_is_live = true
       endif
 
+      # === SHIPPING NOTE ===
+      # Pack sizes that aren't a multiple of 12 (4, 8, 16, ...) ship on a
+      # different timeline than the standard 12-packs. Flag it on the tile
+      # itself rather than a separate line so the caveat travels with the
+      # card that triggers it.
+      assign shipping_note = ''
+      if pack_size > 0
+        assign pack_mod = pack_size | modulo: 12
+        if pack_mod != 0
+          assign shipping_note = 'Shipping for this qty or item will begin on August 27'
+        endif
+      endif
+
       # === SAVINGS ===
       # Against the smallest pack's per-unit rate, not compare-at: these packs
       # have no compare_at_price, and comparing pack totals would never show a
@@ -299,11 +330,12 @@
       endif
 
       # === FREE SHIPPING ===
-      # Deliberately absent from the card. Free shipping is a cart-level fact
-      # about the current selection, not a property of four tiles at once; it
-      # now renders as a single progress bar under the whole row (see
-      # jc-buybox-shipping.liquid). Both the earned "Ships Free" line and the
-      # "$24 away" line were removed with it.
+      # The per-tile "Ships Free" badge is computed above (see === BADGE ===)
+      # and only marks tiles that clear the threshold outright. The "$24
+      # away" style earned-progress message is a cart-level fact about the
+      # current selection, not a property of four tiles at once — that still
+      # renders as a single progress bar under the whole row (see
+      # jc-buybox-shipping.liquid), not repeated per tile.
     -%}
 
     <button
@@ -345,6 +377,9 @@
             font-size: {{ block.settings.badge_font_size }}px;
             border-radius: {{ block.settings.badge_border_radius }}px;
           "
+          {% if ships_free and card_variant %}
+            x-show="jcTileShipsFree({{ card_variant.id }})"
+          {% endif %}
         >{{ badge_text }}</span>
       {% endif %}
 
@@ -440,6 +475,18 @@
                 x-text="jcTileSavePct({{ card_variant.id }}) > 0 ? `save ${jcTileSavePct({{ card_variant.id }})}%` : '\u00A0'"
               {% endif %}
             >{% if savings_label != blank %}{{ savings_label }}{% else %}&nbsp;{% endif %}</div>
+          {% endif %}
+
+          {% if shipping_note != blank %}
+            <div
+              class="ac-vc-shipping-note"
+              style="
+                font-size: var(--type__font-100);
+                font-family: var(--type__font-body-family, sans-serif);
+                opacity: 0.65;
+                margin-top: 4px;
+              "
+            >{{ shipping_note }}</div>
           {% endif %}
 
         {% else %}
