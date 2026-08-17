@@ -288,10 +288,19 @@
       # different timeline than the standard 12-packs. Flag it on the tile
       # itself rather than a separate line so the caveat travels with the
       # card that triggers it.
+      #
+      # The Latte Variety Pack is a launch-stock exception: its 12- and
+      # 24-can packs are multiples of 12 (so the size rule above wouldn't
+      # catch them) but are pre-order stock same as the odd sizes elsewhere.
       assign shipping_note = ''
       if pack_size > 0
         assign pack_mod = pack_size | modulo: 12
         if pack_mod != 0
+          assign shipping_note = 'Pre-Order Item, Ships August 27'
+        endif
+      endif
+      if product.handle == 'jolene-coffee-latte-variety-pack'
+        if pack_size == 12 or pack_size == 24
           assign shipping_note = 'Pre-Order Item, Ships August 27'
         endif
       endif
