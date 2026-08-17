@@ -23,6 +23,18 @@
     "1638995507af787164": {
       "type": "product__main",
       "blocks": {
+        "liquid_jc_gthumbs": {
+          "type": "liquid",
+          "settings": {
+            "liquid": "{% render 'jc-gallery-thumbs' %}",
+            "spacing_top": 0,
+            "spacing_bottom": 0,
+            "color_scheme": "color__bg-transparent",
+            "color_border": "color__border-divider-1",
+            "style_border": "",
+            "position": "left"
+          }
+        },
         "badge_cGMpPb": {
           "type": "badge",
           "settings": {
@@ -74,6 +86,7 @@
             "item_4": "No artificial flavors or concentrates",
             "item_5": "Ready when you are",
             "value_prop_tag": "★ Best Value",
+            "value_prop_pack_size": "24",
             "value_prop_text": "",
             "spacing_top": 0,
             "spacing_bottom": 10,
@@ -259,18 +272,6 @@
             "position": "right",
             "enable_open": false
           }
-        },
-        "liquid_jc_gthumbs": {
-          "type": "liquid",
-          "settings": {
-            "liquid": "{% render 'jc-gallery-thumbs' %}",
-            "spacing_top": 0,
-            "spacing_bottom": 0,
-            "color_scheme": "color__bg-transparent",
-            "color_border": "color__border-divider-1",
-            "style_border": "",
-            "position": "left"
-          }
         }
       },
       "block_order": [
@@ -323,6 +324,7 @@
     },
     "tasting_profile_bQ7mXk": {
       "type": "tasting-profile",
+      "disabled": true,
       "settings": {}
     },
     "icon_grid_zUYX9P": {
